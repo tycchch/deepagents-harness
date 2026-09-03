@@ -1,0 +1,47 @@
+.gitignore
+  s_0277176d6ef0c1::t_84d5d9713520c4 1-12
+README.md
+  s_0277176d6ef0c1::t_abe4c67ea1649a 1-6
+backend/pyproject.toml
+  s_0277176d6ef0c1::t_e40b586aeb5f92 1-61
+frontend/desktop/electron/main.ts
+  s_0277176d6ef0c1::t_9aa3998a4c3bc4 1-31
+frontend/desktop/electron/preload.ts
+  s_0277176d6ef0c1::t_a5f80346bcca74 1-5
+frontend/desktop/package.json
+  s_0277176d6ef0c1::t_d3b9e5ba97c1aa 1-18
+frontend/package-lock.json
+  s_0277176d6ef0c1::t_5cb92a5f050bd6 1-2816
+frontend/package.json
+  s_0277176d6ef0c1::t_ee5b3df61401e2 1-17
+frontend/web/package.json
+  s_0277176d6ef0c1::t_e2217574d61ca6 1-28
+frontend/web/src/App.tsx
+  s_0277176d6ef0c1::t_169a1e49a6b107 1-17
+frontend/web/src/main.tsx
+  s_0277176d6ef0c1::t_ca8e7dc1eeb7fd 1-12
+frontend/web/src/pages/ChatPage.tsx
+  s_0277176d6ef0c1::t_1368be7c9c80b3 1-3
+frontend/web/src/pages/SessionsPage.tsx
+  s_0277176d6ef0c1::t_156bf1be943b1a 1-3
+frontend/web/src/pages/SettingsPage.tsx
+  s_0277176d6ef0c1::t_d51fc3d7ac0892 1-3
+frontend/web/src/pages/SkillsPage.tsx
+  s_0277176d6ef0c1::t_a801ba90973897 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "22fff21b200a416193de52071003b940ea9f7700",
+  "prompts": {},
+  "sessions": {
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
