@@ -1,0 +1,71 @@
+backend/server/rpc.py
+  s_01d9c97511821f::t_315329c6621056 146-152,160-165
+backend/cli/harness_cli/main.py
+  s_01d9c97511821f::t_b50346f70c505a 22,26,31
+  s_01d9c97511821f::t_cc07ab95e05eeb 44-53
+backend/tests/unit/test_rpc.py
+  s_01d9c97511821f::t_b9292db15c39ee 93-95
+  s_01d9c97511821f::t_6488581cdf0630 45
+  s_01d9c97511821f::t_7abb8f690c3b01 44,46
+  s_01d9c97511821f::t_ccad8e96387d8a 100-104
+backend/protocol/methods.py
+  s_01d9c97511821f::t_3e6612e6e29758 41
+frontend/web/src/protocol/types.ts
+  s_01d9c97511821f::t_3d8baa2e6fb01e 65
+frontend/web/src/styles.css
+  s_01d9c97511821f::t_28a0b9a7bc161a 129-135
+  s_01d9c97511821f::t_040f5582292531 146
+backend/cli/harness_cli/banner.py
+  s_01d9c97511821f::t_deb5a7ba1fca16 48
+frontend/web/src/store/session.ts
+  s_01d9c97511821f::t_c59d6edd4cc33d 38
+  s_01d9c97511821f::t_4762b1d0d0fa6a 162
+  s_01d9c97511821f::t_ae9021c7984e41 191-195
+backend/tests/unit/test_session.py
+  s_01d9c97511821f::t_1c10f36a487018 22
+  s_01d9c97511821f::t_2428f08e7dc61a 19-21,23-29
+  s_01d9c97511821f::t_6f775fb23620f6 13-16
+  s_01d9c97511821f::t_c86379a5cc492d 1,17-18
+  s_01d9c97511821f::t_9759eeb2ddebb6 9
+  s_01d9c97511821f::t_0e5dcd355afe51 37
+backend/tests/unit/test_cli.py
+  s_01d9c97511821f::t_1dd144c9d6e431 64,67-68,71-72
+  s_01d9c97511821f::t_95729cce8fcc5d 65-66,69-70
+backend/cli/harness_cli/tui.py
+  s_0277176d6ef0c1::t_ed0dae17846ff6 5,23,134-173,180,192-194,203,250-257
+backend/server/app.py
+  s_0277176d6ef0c1::t_c4e8198ca7f48c 13-14,17-18,95
+backend/server/session.py
+  s_0277176d6ef0c1::t_22d69eb9cd6b5f 13-16,30,45,54,61-78,81-86,90
+frontend/web/src/pages/SessionsPage.tsx
+  s_0277176d6ef0c1::t_a0f05cdf886dfe 3,6-48,61-63,69,83-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "97fd89107b538a96731656f3ccb5354f6aaa5fd3",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    },
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
