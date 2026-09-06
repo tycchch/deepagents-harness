@@ -1,9 +1,46 @@
 import { useEffect, useRef } from "react";
 import type { ChatItem } from "../store/session";
-import DiffView from "./DiffView";
 import Markdown from "./Markdown";
-import Reasoning from "./Reasoning";
-import ToolCard from "./ToolCard";
+import ThoughtProcess from "./ThoughtProcess";
+
+function isProcess(item: ChatItem): boolean {
+  return (
+    item.type === "reasoning" ||
+    item.type === "tool_call" ||
+    item.type === "command_execution" ||
+    item.type === "skill_use" ||
+    item.type === "file_change"
+  );
+}
+
+type Block =
+  | { kind: "user"; item: ChatItem }
+  | { kind: "turn"; process: ChatItem[]; answers: ChatItem[] };
+
+function groupTurns(items: ChatItem[]): Block[] {
+  const blocks: Block[] = [];
+  let process: ChatItem[] = [];
+  let answers: ChatItem[] = [];
+
+  function flush() {
+    if (!process.length && !answers.length) return;
+    blocks.push({ kind: "turn", process, answers });
+    process = [];
+    answers = [];
+  }
+
+  for (const item of items) {
+    if (item.type === "user_message") {
+      flush();
+      blocks.push({ kind: "user", item });
+      continue;
+    }
+    if (isProcess(item)) process.push(item);
+    else answers.push(item);
+  }
+  flush();
+  return blocks;
+}
 
 export default function MessageList({ items }: { items: ChatItem[] }) {
   const anchor = useRef<HTMLDivElement>(null);
@@ -12,7 +49,6 @@ export default function MessageList({ items }: { items: ChatItem[] }) {
   useEffect(() => {
     const scroller = anchor.current?.closest("main");
     if (!scroller) return;
-    // Stick to the bottom while streaming, but leave the user alone if they scrolled up to read.
     const gap = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
     const firstPaint = seen.current === 0 && items.length > 0;
     seen.current = items.length;
@@ -23,26 +59,22 @@ export default function MessageList({ items }: { items: ChatItem[] }) {
 
   return (
     <div className="messages">
-      {items.map((item) => {
-        if (item.type === "user_message") {
+      {groupTurns(items).map((block, index) => {
+        if (block.kind === "user") {
           return (
-            <div key={item.item_id} className="msg user">
-              {item.text}
+            <div key={block.item.item_id} className="msg user">
+              {block.item.text}
             </div>
           );
         }
-        if (item.type === "reasoning") {
-          return <Reasoning key={item.item_id} item={item} />;
-        }
-        if (item.type === "file_change") {
-          return <DiffView key={item.item_id} item={item} />;
-        }
-        if (item.type === "tool_call" || item.type === "command_execution" || item.type === "skill_use") {
-          return <ToolCard key={item.item_id} item={item} />;
-        }
         return (
-          <div key={item.item_id} className={`msg agent${item.pending ? " pending" : ""}`}>
-            {item.text ? <Markdown text={item.text} /> : item.pending ? <span className="dots">…</span> : null}
+          <div key={`turn-${index}`} className="turn">
+            {block.process.length ? <ThoughtProcess items={block.process} /> : null}
+            {block.answers.map((item) => (
+              <div key={item.item_id} className={`msg agent${item.pending ? " pending" : ""}`}>
+                {item.text ? <Markdown text={item.text} /> : item.pending ? <span className="dots">…</span> : null}
+              </div>
+            ))}
           </div>
         );
       })}

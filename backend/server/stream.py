@@ -196,6 +196,10 @@ def map_stream_event(mode: str, payload: object) -> list[RpcNotification]:
             tool=name or None,
         )
         return [RpcNotification(method="item/completed", params=event.model_dump(mode="json"))]
+    reasoning = _reasoning_text(message)
+    if reasoning:
+        event = ItemEvent(item_id="think", type=ItemType.REASONING, text=reasoning)
+        notes.append(RpcNotification(method="item/delta", params=event.model_dump(mode="json")))
     for call in _tool_calls(message):
         tool_name = str(call.get("name") or "")
         path, detail = _tool_detail(call.get("args"))
@@ -207,10 +211,6 @@ def map_stream_event(mode: str, payload: object) -> list[RpcNotification]:
             path=path,
         )
         notes.append(RpcNotification(method="item/started", params=event.model_dump(mode="json")))
-    reasoning = _reasoning_text(message)
-    if reasoning:
-        event = ItemEvent(item_id="think", type=ItemType.REASONING, text=reasoning)
-        notes.append(RpcNotification(method="item/delta", params=event.model_dump(mode="json")))
     if text:
         event = ItemEvent(item_id="msg", type=ItemType.AGENT_MESSAGE, text=text)
         notes.append(RpcNotification(method="item/delta", params=event.model_dump(mode="json")))

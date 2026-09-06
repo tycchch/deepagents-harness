@@ -175,6 +175,66 @@ a { color: inherit; text-decoration: none; }
   padding-bottom: 24px;
 }
 
+.turn { display: flex; flex-direction: column; gap: 14px; }
+
+.thought { color: var(--muted); font-size: 13px; }
+.thought-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.thought-head:hover { color: var(--text); }
+.thought-mark { color: #6ea8ff; font-size: 12px; }
+.thought-caret { margin-left: auto; font-size: 11px; opacity: 0.7; }
+.thought-body {
+  margin: 8px 0 0 7px;
+  padding-left: 14px;
+  border-left: 2px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.step-think {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-style: italic;
+}
+.step-tool { color: var(--muted); }
+.step-tool summary {
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.step-tool summary::-webkit-details-marker { display: none; }
+.step-tool .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+  flex: 0 0 auto;
+}
+.step-tool .dot.spin { background: #6ea8ff; box-shadow: 0 0 0 3px rgba(110, 168, 255, 0.18); }
+.step-tool pre {
+  margin: 6px 0 0 14px;
+  padding: 8px 10px;
+  background: #0e1014;
+  border-radius: 8px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
 .msg { line-height: 1.7; }
 .msg.user {
   align-self: flex-end;
@@ -196,15 +256,6 @@ a { color: inherit; text-decoration: none; }
   padding: 1px 5px;
 }
 .dots { color: var(--muted); }
-
-.thinking {
-  border-left: 2px solid var(--line);
-  padding-left: 12px;
-  color: var(--muted);
-  font-size: 13px;
-}
-.thinking summary { cursor: pointer; font-style: italic; }
-.thinking > div { margin-top: 6px; white-space: pre-wrap; line-height: 1.6; }
 
 .code {
   margin: 0 0 12px;
