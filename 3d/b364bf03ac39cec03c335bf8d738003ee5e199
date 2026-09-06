@@ -1,0 +1,229 @@
+backend/config/default.yaml
+  s_0277176d6ef0c1::t_09a663114c6993 2
+  s_0277176d6ef0c1::t_2ebaefcc518a87 10
+  s_0277176d6ef0c1::t_1cade7740782ce 1,4-6,15,17-25
+  s_0277176d6ef0c1::t_31221c35c7b66f 3,7-9,11-14,16
+frontend/web/src/components/Composer.tsx
+  s_0277176d6ef0c1::t_22ec831bf7bffc 1-45
+开发指南.md
+  h_85327ed1938640 104,120,135,194,230,232,265,286,318,343
+  h_85327ed1938640 31,116,119,121-127,129,131-133,192,196,200,279,312-313,334,336,345-347
+frontend/web/src/main.tsx
+  s_0277176d6ef0c1::t_08b6060e894b1b 5
+backend/protocol/__init__.py
+  s_0277176d6ef0c1::t_d75c2574a6fa28 1-37
+backend/tests/unit/test_cli.py
+  s_0277176d6ef0c1::t_796720832cc96a 1-39,64-72
+  s_01d9c97511821f::t_8ced0c0a42f6ea 40-63
+backend/.env.example
+  s_0277176d6ef0c1::t_9f3108c512eb37 1,6-9,13-16
+  s_0277176d6ef0c1::t_8c4ae83ae507b1 2-5,10-12
+frontend/desktop/electron/preload.ts
+  s_0277176d6ef0c1::t_66467b8df250c6 5-6
+backend/tests/unit/test_session.py
+  s_0277176d6ef0c1::t_3f9022e0bb0c42 1-21
+backend/server/stream.py
+  s_01d9c97511821f::t_a726d128b2fe3f 161
+  s_0277176d6ef0c1::t_80969573accd53 198-199,211,224,228-230,232-233,235-242,247-251,253-258,260-262
+  s_0277176d6ef0c1::t_e32fb8ba555d8c 209
+  s_0277176d6ef0c1::t_84542dff0be8e3 29-42,116-122,124,126-132,152-154,156-157,159,162-179
+  s_01d9c97511821f::t_4f29b61e52817d 43-115,123,125,133-151
+  s_0277176d6ef0c1::t_6ef6095e72ad6b 1-28,180-197,200-208,210,212-223,225-227,231,234,243-246,252,259
+  s_0277176d6ef0c1::t_d5736a1a8f28dc 155,158,160
+frontend/web/src/pages/SettingsPage.tsx
+  s_0277176d6ef0c1::t_2b1259720b04ba 1-3,5-64
+backend/config/__init__.py
+  s_0277176d6ef0c1::t_fbd9717007730c 2,4-10
+  s_0277176d6ef0c1::t_1472ba2b399782 1,3
+frontend/web/src/styles.css
+  s_0277176d6ef0c1::t_42fbcfe99754a7 1-164
+backend/config/production.yaml
+  s_0277176d6ef0c1::t_fdc449bf37fff2 1-11
+backend/tests/unit/test_rpc.py
+  s_0277176d6ef0c1::t_ed8af750d96cd8 2-10,12
+  s_0277176d6ef0c1::t_14164cf990ec47 1,11,13-68
+  s_0277176d6ef0c1::t_facee302dd236d 69-171
+backend/cli/harness_cli/banner.py
+  s_01d9c97511821f::t_95fea9c2fe5c1f 1-67
+backend/tests/unit/test_agent.py
+  s_0277176d6ef0c1::t_01241389769ccd 1-20,24-94
+  s_01d9c97511821f::t_aac4e9f4e1f3a2 21-23
+backend/tests/unit/test_app.py
+  s_0277176d6ef0c1::t_88dbaaf8c8b8ca 6-7
+  s_0277176d6ef0c1::t_f85fe3acc3668e 43-53
+  s_0277176d6ef0c1::t_4644e9711a202c 28-42
+  s_0277176d6ef0c1::t_9147852ad55b4f 1-2
+  s_0277176d6ef0c1::t_8748d326f0cc2b 3-5,8-27
+backend/cli/harness_cli/tui.py
+  s_01d9c97511821f::t_d2f7efe713d5de 107-114
+  s_0277176d6ef0c1::t_7b4c2f8c88ac46 3,5
+  s_0277176d6ef0c1::t_c8c1587f632112 117
+  s_01d9c97511821f::t_bcb953a7bc127e 20
+  s_0277176d6ef0c1::t_9eadd7f1cc67b1 43,47
+  s_0277176d6ef0c1::t_d2c2bb462150a0 37
+  s_0277176d6ef0c1::t_62c2f8658f3e98 133
+  s_0277176d6ef0c1::t_d83683bb2e7058 1-2,7-19,21-36,38-42,44-46,48-105,115-116,118-132,134-157
+  s_01d9c97511821f::t_e9d28843ccd9e2 4,6
+  s_0277176d6ef0c1::t_e2460681d10cbd 106
+  s_0277176d6ef0c1::t_70ea52c1fdfedb 158-231
+backend/pyproject.toml
+  s_0277176d6ef0c1::t_69be0a3f72eefc 24
+  s_01d9c97511821f::t_420afa85117440 38
+  s_0277176d6ef0c1::t_80775ea93c5bf9 36-37,39
+  s_0277176d6ef0c1::t_bd67358db8d62b 59
+backend/protocol/events.py
+  s_0277176d6ef0c1::t_3038c21d402364 1-30
+frontend/desktop/electron/main.ts
+  s_0277176d6ef0c1::t_62173b4b7c1ea7 1-4,8-48,51,56,64-69,72,77-81
+frontend/web/vite.config.ts
+  s_0277176d6ef0c1::t_c224fabaaadc66 7
+backend/tests/unit/test_config.py
+  s_0277176d6ef0c1::t_81c98eaf335db3 1,3-8,10-14,59-82
+  s_0277176d6ef0c1::t_a0fc80f5ef34f8 30
+  s_0277176d6ef0c1::t_e2cfc16561b884 2,9,18-29,31-49,51,53,55-58,83-109,112,114-118
+  s_0277176d6ef0c1::t_53c4c882ac12a8 15-17
+  s_0277176d6ef0c1::t_0ff7a3d99365f8 50,52,54
+  s_01d9c97511821f::t_ae7ddca920a934 110-111,113
+backend/config/persist.py
+  s_01d9c97511821f::t_a470e406f0d60b 3,11-12,14,17-18,21-22,37-41,56-60,62-74,76-92,94-98
+  s_0277176d6ef0c1::t_ec20c6712819a3 1-2,4-10,13,15-16,24-35,42-54,61
+  s_01d9c97511821f::t_6ba36b0990aa72 19-20,23
+  s_01d9c97511821f::t_3b7544efb21d2d 36
+  s_01d9c97511821f::t_200fdf1c05b763 93
+  s_01d9c97511821f::t_a914cbc0d88578 55
+  s_01d9c97511821f::t_7437cbe9a031d9 75
+backend/cli/harness_cli/main.py
+  s_0277176d6ef0c1::t_96bc8c7869fe0c 3,8,10,13-15,18-31,34,36,38-54,59-60,64-67
+  s_0277176d6ef0c1::t_93d3ed5e17e379 1-2,4-7,9,11-12,16-17,32-33,35,37,55-58,61-63,68-75
+backend/server/app.py
+  s_0277176d6ef0c1::t_493f24bebdee18 43-45
+  s_0277176d6ef0c1::t_64449d44b4ba24 64
+  s_0277176d6ef0c1::t_2f05edfe5295e8 1-4,6-8,12,14-16,20-21,25-26,88,94-97,99,102-107
+  s_0277176d6ef0c1::t_90ec179da5a7d4 9,50-51,63,90,92,98,100-101
+  s_0277176d6ef0c1::t_1da2a9e91b7e84 5,10
+  s_0277176d6ef0c1::t_799d8e41179000 11,13,17-19,22-24,27-42,46-49,52-62,65-68,89,91
+  s_0277176d6ef0c1::t_e237a8b74629a4 69-87,93
+backend/config/schema.py
+  s_0277176d6ef0c1::t_e6dd2c7c331549 31-33
+  s_0277176d6ef0c1::t_6627a08c8f85a5 26-29
+  s_0277176d6ef0c1::t_ca877281063cf4 40
+  s_0277176d6ef0c1::t_3370cee0530f94 1-3,9-12,14,23-25,30,34,37-39
+  s_0277176d6ef0c1::t_faf94296dfd27a 4-8,13,15-22,35-36
+backend/tests/unit/test_stream.py
+  s_01d9c97511821f::t_9aae67bfb50525 41-77
+  s_0277176d6ef0c1::t_b2c0f5b42131ab 1-28,91-99
+  s_0277176d6ef0c1::t_1789d38604bc4b 29-40,78-90
+backend/agent/backends.py
+  s_0277176d6ef0c1::t_d31aaed3f444df 1-30,32-51
+  s_0277176d6ef0c1::t_780da58024fe25 31
+frontend/web/src/pages/SkillsPage.tsx
+  s_0277176d6ef0c1::t_c739c02b33047c 1-3,5-66
+.gitignore
+  h_85327ed1938640 13-14
+backend/agent/prompts.py
+  s_0277176d6ef0c1::t_05482cc888e732 1-11
+frontend/web/src/App.tsx
+  s_0277176d6ef0c1::t_d16dc2bc93910f 2,11-17
+backend/protocol/frame.py
+  s_0277176d6ef0c1::t_1146b91850380d 1-61
+backend/agent/permissions.py
+  s_01d9c97511821f::t_46d784cc21130f 25,30
+  s_0277176d6ef0c1::t_d6e5a0b32850ee 1-24,26-29,31-58
+frontend/web/src/components/DiffView.tsx
+  s_0277176d6ef0c1::t_e5dabd851f08b5 1-22
+frontend/web/src/vite-env.d.ts
+  s_0277176d6ef0c1::t_d14bff302bf65c 2-19
+frontend/web/src/protocol/types.ts
+  s_0277176d6ef0c1::t_dfb3dd7796a7a8 67-70,74-83
+  s_0277176d6ef0c1::t_d2cf503e318191 100-108
+  s_0277176d6ef0c1::t_5ad57788b665b1 1-66,71-73,84-99
+backend/config/load.py
+  s_0277176d6ef0c1::t_8af140ce8749a9 1-4,6,8-12,15-21,96,108
+  s_0277176d6ef0c1::t_a410e41b3fd325 5,7,13-14,22-58,63-95,97-107
+  s_0277176d6ef0c1::t_730cfd67a92cb9 59-62
+start-server.ps1
+  s_01d9c97511821f::t_5e7f66e0fb7aea 1-27
+frontend/web/src/store/session.ts
+  s_0277176d6ef0c1::t_26562ef0026509 126-129
+  s_0277176d6ef0c1::t_1ae19868864abc 1-57,65-125,130-200,207-250
+  s_0277176d6ef0c1::t_de2d0d274ea16e 58-64
+  s_0277176d6ef0c1::t_6919bbcb954061 201-206
+backend/agent/tools/__init__.py
+  s_0277176d6ef0c1::t_8a55c387a661a1 1-5
+backend/tests/unit/test_protocol.py
+  s_0277176d6ef0c1::t_263d4fa0512813 1-115
+backend/server/rpc.py
+  s_0277176d6ef0c1::t_e4d76cd207030c 4
+  s_0277176d6ef0c1::t_8b53124950a627 6,8-18,31-36,39,41-42,46-47,63,136-142,144-146,148-153,157-165,167-169,171-200,202-205,207,209-212,225-239
+  s_0277176d6ef0c1::t_849bc8a4480dad 213-222
+  s_0277176d6ef0c1::t_af43b909b4878c 1-2,7,19,21-30,40,54-62,64-68,125-135,143,147,154-156,166,170,208,223-224
+  s_0277176d6ef0c1::t_faadac6c08380e 201,206
+  s_01d9c97511821f::t_7e56e3d9520a61 81,87-90,92,98,101-103,106,113
+  s_0277176d6ef0c1::t_0171c8aea48118 69-80,82-86,91,93-97,99-100,104-105,107-112,114-124
+  s_0277176d6ef0c1::t_f520bea91bf6f5 3,5,20
+  s_0277176d6ef0c1::t_a217186d467d96 37-38,43-45,48-53
+backend/server/__main__.py
+  s_0277176d6ef0c1::t_be38f4c8997402 1-3
+backend/server/session.py
+  s_0277176d6ef0c1::t_9fee1a8cb88dcb 1-27
+  s_0277176d6ef0c1::t_beb2e5918182c5 28-94
+frontend/web/src/lib/rpc.ts
+  s_0277176d6ef0c1::t_251b2e87a3b8c5 1-101
+backend/agent/sandbox.py
+  s_0277176d6ef0c1::t_158d0cb8a75f09 1-30
+backend/agent/factory.py
+  s_0277176d6ef0c1::t_1061f9df005cdf 36
+  s_0277176d6ef0c1::t_de33395051796a 7
+  s_0277176d6ef0c1::t_e6fdbd4f88de6e 11-25
+  s_0277176d6ef0c1::t_db27688f9d2a9a 1-6,8-10,26-32,35,37-47
+  s_0277176d6ef0c1::t_bbe36c02f7d817 33-34
+backend/server/__init__.py
+  s_0277176d6ef0c1::t_712e77ef51b658 1-3
+backend/protocol/methods.py
+  s_0277176d6ef0c1::t_dcee60e4681a3e 1-73
+backend/agent/__init__.py
+  s_0277176d6ef0c1::t_ad9b85e66f92e1 1-3
+backend/cli/harness_cli/client.py
+  s_0277176d6ef0c1::t_c84648e4a16521 1-139
+frontend/web/src/components/ApprovalDialog.tsx
+  s_0277176d6ef0c1::t_81fe47754a1454 1-45
+frontend/web/src/components/MessageList.tsx
+  s_0277176d6ef0c1::t_269d567fed6811 1-31
+frontend/web/src/components/ToolCard.tsx
+  s_0277176d6ef0c1::t_3982b4e2dbe24d 1-14
+frontend/web/src/pages/ChatPage.tsx
+  s_0277176d6ef0c1::t_6fb330119783a3 1-7,9-49
+frontend/web/src/pages/SessionsPage.tsx
+  s_0277176d6ef0c1::t_8f6014fe9bc01a 1-4,6-58
+frontend/web/src/components/Layout.tsx
+  h_85327ed1938640 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3db364bf03ac39cec03c335bf8d738003ee5e199",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    },
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
