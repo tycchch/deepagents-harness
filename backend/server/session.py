@@ -10,6 +10,10 @@ from pydantic import BaseModel
 from protocol.methods import ThreadInfo
 
 
+def normalize_workspace(workspace: str) -> str:
+    return str(Path(workspace).expanduser().resolve())
+
+
 class ThreadRecord(BaseModel):
     thread_id: str
     workspace: str
@@ -23,6 +27,7 @@ class ThreadRecord(BaseModel):
             workspace=self.workspace,
             title=self.title,
             updated_at=self.updated_at,
+            archived=self.archived,
         )
 
 
@@ -37,7 +42,7 @@ class ThreadStore:
     def start(self, workspace: str) -> ThreadInfo:
         record = ThreadRecord(
             thread_id=str(uuid4()),
-            workspace=workspace,
+            workspace=normalize_workspace(workspace),
             updated_at=_now(),
         )
         self._items[record.thread_id] = record
@@ -46,21 +51,43 @@ class ThreadStore:
 
     def get(self, thread_id: str) -> ThreadInfo | None:
         record = self._items.get(thread_id)
-        if record is None or record.archived:
+        if record is None:
             return None
         return record.to_info()
 
     def resume(self, thread_id: str) -> ThreadInfo | None:
         return self.get(thread_id)
 
-    def list(self) -> list[ThreadInfo]:
-        return [item.to_info() for item in self._items.values() if not item.archived]
+    def list(self, *, include_archived: bool = False) -> list[ThreadInfo]:
+        items = [
+            item.to_info()
+            for item in self._items.values()
+            if include_archived or not item.archived
+        ]
+        return sorted(items, key=lambda item: item.updated_at, reverse=True)
+
+    def latest_for_workspace(self, workspace: str) -> ThreadInfo | None:
+        target = normalize_workspace(workspace)
+        for item in self.list():
+            try:
+                if normalize_workspace(item.workspace) == target:
+                    return item
+            except OSError:
+                if item.workspace == workspace:
+                    return item
+        return None
 
     def archive(self, thread_id: str) -> bool:
+        return self._set_archived(thread_id, True)
+
+    def unarchive(self, thread_id: str) -> bool:
+        return self._set_archived(thread_id, False)
+
+    def _set_archived(self, thread_id: str, archived: bool) -> bool:
         record = self._items.get(thread_id)
         if record is None:
             return False
-        record.archived = True
+        record.archived = archived
         record.updated_at = _now()
         self._save()
         return True

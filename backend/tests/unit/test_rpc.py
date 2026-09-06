@@ -41,7 +41,9 @@ def test_initialize_then_thread_start() -> None:
     started = disp.handle(_req("thread/start", ThreadStartParams(workspace="E:/repo").model_dump(), id=2))
     info = parse_message(started[0])
     assert isinstance(info, RpcResponse)
-    assert info.result["workspace"] == "E:/repo"
+    from server.session import normalize_workspace
+
+    assert normalize_workspace(info.result["workspace"]) == normalize_workspace("E:/repo")
     assert info.result["thread_id"]
 
 
@@ -88,11 +90,18 @@ def test_thread_list_resume_archive(tmp_path) -> None:
     resumed = parse_message(
         disp.handle(_req("thread/resume", ThreadResumeParams(thread_id=thread_id).model_dump(), id=4))[0]
     )
-    assert resumed.result["workspace"] == "E:/repo"
+    from server.session import normalize_workspace
+
+    assert normalize_workspace(resumed.result["workspace"]) == normalize_workspace("E:/repo")
 
     disp.handle(_req("thread/archive", ThreadResumeParams(thread_id=thread_id).model_dump(), id=5))
     listed = parse_message(disp.handle(_req("thread/list", {}, id=6))[0])
     assert listed.result["threads"] == []
+    listed = parse_message(disp.handle(_req("thread/list", {"include_archived": True}, id=7))[0])
+    assert listed.result["threads"][0]["archived"] is True
+    disp.handle(_req("thread/unarchive", ThreadResumeParams(thread_id=thread_id).model_dump(), id=8))
+    listed = parse_message(disp.handle(_req("thread/list", {}, id=9))[0])
+    assert listed.result["threads"][0]["thread_id"] == thread_id
 
 
 def test_shared_store_across_dispatchers(tmp_path) -> None:

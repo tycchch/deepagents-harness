@@ -126,6 +126,13 @@ a { color: inherit; text-decoration: none; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .list { display: flex; flex-direction: column; gap: 8px; }
+.section-title {
+  margin: 16px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
 .row {
   display: flex;
   justify-content: space-between;
@@ -136,6 +143,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 8px;
 }
 .row:hover { border-color: #3d4554; }
+.row.archived { opacity: 0.72; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-width: 560px; }
 .field label { font-size: 13px; color: var(--muted); }
 .field input, .field textarea {

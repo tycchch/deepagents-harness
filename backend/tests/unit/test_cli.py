@@ -61,6 +61,15 @@ def test_banner_renders_wordmark() -> None:
     assert "abc-123" in text
 
 
+def test_same_workspace_normalizes() -> None:
+    from pathlib import Path
+
+    from harness_cli.tui import _same_workspace
+
+    root = Path.cwd()
+    assert _same_workspace(str(root), str(root / "."))
+
+
 def test_client_builds_request_line() -> None:
     from harness_cli.client import next_request
 

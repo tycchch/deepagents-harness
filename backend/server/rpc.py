@@ -143,11 +143,23 @@ class RpcDispatcher:
             return info.model_dump(mode="json"), []
 
         if request.method == "thread/list":
-            return {"threads": [item.model_dump(mode="json") for item in self._threads.list()]}, []
+            include_archived = bool(request.params.get("include_archived"))
+            return {
+                "threads": [
+                    item.model_dump(mode="json")
+                    for item in self._threads.list(include_archived=include_archived)
+                ]
+            }, []
 
         if request.method == "thread/archive":
             params = ThreadResumeParams.model_validate(request.params)
             if not self._threads.archive(params.thread_id):
+                raise RpcDispatchError("Unknown thread")
+            return {}, []
+
+        if request.method == "thread/unarchive":
+            params = ThreadResumeParams.model_validate(request.params)
+            if not self._threads.unarchive(params.thread_id):
                 raise RpcDispatchError("Unknown thread")
             return {}, []
 

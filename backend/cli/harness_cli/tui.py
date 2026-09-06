@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from pathlib import Path
 
 from protocol.events import ItemEvent, ItemType
 from protocol.frame import RpcNotification, RpcResponse
@@ -19,7 +20,7 @@ from rich.console import Console
 from rich.rule import Rule
 
 from harness_cli.banner import render_banner
-from harness_cli.client import HarnessClient
+from harness_cli.client import HarnessClient, HarnessRpcError
 
 
 def _divider(console: Console, title: str = "") -> None:
@@ -130,12 +131,53 @@ def _ask_approval(console: Console, params: dict, *, auto_approve: bool) -> dict
     ).model_dump(mode="json")
 
 
+def _same_workspace(left: str, right: str) -> bool:
+    try:
+        return Path(left).expanduser().resolve() == Path(right).expanduser().resolve()
+    except OSError:
+        return left.rstrip("\\/") == right.rstrip("\\/")
+
+
+async def _open_thread(
+    client: HarnessClient,
+    workspace: str,
+    *,
+    thread_id: str | None,
+    force_new: bool,
+) -> tuple[dict, bool]:
+    if thread_id:
+        info, _ = await client.request(
+            "thread/resume",
+            ThreadResumeParams(thread_id=thread_id).model_dump(mode="json"),
+        )
+        return info, True
+    if not force_new:
+        listed, _ = await client.request("thread/list", {})
+        threads = listed.get("threads") or []
+        match = next((item for item in threads if _same_workspace(str(item.get("workspace") or ""), workspace)), None)
+        if match:
+            try:
+                info, _ = await client.request(
+                    "thread/resume",
+                    ThreadResumeParams(thread_id=str(match["thread_id"])).model_dump(mode="json"),
+                )
+                return info, True
+            except HarnessRpcError:
+                pass
+    info, _ = await client.request(
+        "thread/start",
+        ThreadStartParams(workspace=workspace).model_dump(mode="json"),
+    )
+    return info, False
+
+
 async def run_session(
     workspace: str,
     *,
     thread_id: str | None = None,
     prompt: str | None = None,
     auto_approve: bool = False,
+    force_new: bool = False,
     host: str = "127.0.0.1",
     port: int = 8765,
 ) -> None:
@@ -147,16 +189,9 @@ async def run_session(
             "initialize",
             InitializeParams(client=ClientType.CLI, cwd=workspace).model_dump(mode="json"),
         )
-        if thread_id:
-            info, _ = await client.request(
-                "thread/resume",
-                ThreadResumeParams(thread_id=thread_id).model_dump(mode="json"),
-            )
-        else:
-            info, _ = await client.request(
-                "thread/start",
-                ThreadStartParams(workspace=workspace).model_dump(mode="json"),
-            )
+        info, resumed = await _open_thread(
+            client, workspace, thread_id=thread_id, force_new=force_new
+        )
         tid = info["thread_id"]
         if prompt is None:
             render_banner(
@@ -165,7 +200,7 @@ async def run_session(
                 host=host,
                 port=port,
                 thread_id=tid,
-                resumed=thread_id is not None,
+                resumed=resumed,
             )
 
         async def _run_turn(text: str) -> None:
@@ -212,6 +247,14 @@ async def run_session(
                 continue
             if text in {":q", "/quit", "/exit"}:
                 return
+            if text in {"/new", ":new"}:
+                info, _ = await client.request(
+                    "thread/start",
+                    ThreadStartParams(workspace=workspace).model_dump(mode="json"),
+                )
+                tid = info["thread_id"]
+                console.print(f"[dim]new thread {tid}[/]")
+                continue
             if text in {"/interrupt", ":interrupt"}:
                 await client.request(
                     "turn/interrupt",

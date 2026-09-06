@@ -38,6 +38,7 @@ class ThreadInfo(BaseModel):
     workspace: str
     title: str = ""
     updated_at: str = ""
+    archived: bool = False
 
 
 class ThreadResumeParams(BaseModel):

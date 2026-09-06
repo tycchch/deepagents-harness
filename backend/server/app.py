@@ -10,7 +10,11 @@ from config.load import load_harness_config
 from config.schema import HarnessConfig
 from protocol.frame import RpcNotification, dumps_message
 from server.rpc import RpcDispatcher
+from pathlib import Path
+
 from server.session import ThreadStore
+
+THREADS_PATH = Path.home() / ".harness" / "threads.json"
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
@@ -88,7 +92,7 @@ def print_ready(host: str, port: int, cfg: HarnessConfig | None = None) -> None:
 async def run_server(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> None:
     assert_loopback(host)
     cfg = load_harness_config()
-    store = ThreadStore()
+    store = ThreadStore(THREADS_PATH)
     async with serve(lambda ws: _client(ws, store, cfg=cfg), host, port):
         print_ready(host, port, cfg)
         await asyncio.Future()

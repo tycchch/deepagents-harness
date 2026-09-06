@@ -62,6 +62,7 @@ export type ThreadInfo = {
   workspace: string;
   title: string;
   updated_at: string;
+  archived?: boolean;
 };
 
 export type ThreadResumeParams = {

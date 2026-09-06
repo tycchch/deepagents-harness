@@ -35,6 +35,7 @@ type HarnessState = {
   startThread: (workspace?: string) => Promise<ThreadInfo>;
   resumeThread: (threadId: string) => Promise<ThreadInfo>;
   archiveThread: (threadId: string) => Promise<void>;
+  unarchiveThread: (threadId: string) => Promise<void>;
   send: (text: string) => Promise<void>;
   interrupt: () => Promise<void>;
   resolveApproval: (decision: ApprovalDecision, editedArgs?: Record<string, unknown>) => Promise<void>;
@@ -158,7 +159,7 @@ export const useHarness = create<HarnessState>((set, get) => ({
   },
 
   refreshThreads: async () => {
-    const result = asRecord(await getClient().request("thread/list"));
+    const result = asRecord(await getClient().request("thread/list", { include_archived: true }));
     set({ threads: (result.threads as ThreadInfo[]) ?? [] });
   },
 
@@ -184,6 +185,11 @@ export const useHarness = create<HarnessState>((set, get) => ({
   archiveThread: async (threadId: string) => {
     await getClient().request("thread/archive", { thread_id: threadId });
     if (get().thread?.thread_id === threadId) set({ thread: null, items: [] });
+    await get().refreshThreads();
+  },
+
+  unarchiveThread: async (threadId: string) => {
+    await getClient().request("thread/unarchive", { thread_id: threadId });
     await get().refreshThreads();
   },
 

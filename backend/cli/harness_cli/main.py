@@ -19,14 +19,16 @@ def _ws(cfg=None) -> tuple[str, int]:
 def _root(
     ctx: typer.Context,
     workspace: str = typer.Option(os.getcwd(), "--workspace", help="Workspace path"),
+    new: bool = typer.Option(False, "--new", help="Start a new thread instead of resuming"),
 ) -> None:
     ctx.ensure_object(dict)
     ctx.obj["workspace"] = workspace
+    ctx.obj["new"] = new
     if ctx.invoked_subcommand is None:
         from harness_cli.tui import run_tui
 
         host, port = _ws()
-        asyncio.run(run_tui(workspace, host=host, port=port))
+        asyncio.run(run_tui(workspace, force_new=new, host=host, port=port))
 
 
 @app.command()
@@ -39,7 +41,16 @@ def ask(
 
     workspace = ctx.obj["workspace"]
     host, port = _ws()
-    asyncio.run(run_ask(workspace, text, auto_approve=auto_approve, host=host, port=port))
+    asyncio.run(
+        run_ask(
+            workspace,
+            text,
+            auto_approve=auto_approve,
+            force_new=ctx.obj.get("new", False),
+            host=host,
+            port=port,
+        )
+    )
 
 
 @app.command()
