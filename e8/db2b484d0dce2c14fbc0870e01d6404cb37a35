@@ -1,0 +1,28 @@
+frontend/web/src/components/Composer.tsx
+  s_0277176d6ef0c1::t_96d7bc43ee65f4 10-26,43,53-60,63-71
+frontend/web/src/components/MessageList.tsx
+  s_0277176d6ef0c1::t_cac93e82bf990c 6-46,86,99-127
+frontend/web/src/pages/ChatPage.tsx
+  s_0277176d6ef0c1::t_7b9a7e539842d7 31,34-35,38-46,49-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e8db2b484d0dce2c14fbc0870e01d6404cb37a35",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
