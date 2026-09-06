@@ -1,0 +1,29 @@
+frontend/web/src/pages/SettingsPage.tsx
+  s_01d9c97511821f::t_f14e6eaeee90fd 40-41
+  s_01d9c97511821f::t_b6cc9667f7f72b 61
+  s_01d9c97511821f::t_8681c8a1c5e114 35-39,42-45
+  s_01d9c97511821f::t_fe3c0c8f860e11 2
+  s_01d9c97511821f::t_face3fb22d02ed 6
+  s_01d9c97511821f::t_8bfee4c7d8122a 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ee40deab84e9ac5e20f04cfc94d2786ed02bbdde",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
