@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
 from pathlib import Path
 
@@ -16,8 +17,36 @@ from protocol.methods import (
     TurnInterruptParams,
     TurnStartParams,
 )
-from server.session import ThreadStore
-from server.stream import AgentTurnStreamer, ApprovalHub, FakeTurnStreamer, TurnRunner
+from server.session import ThreadStore, normalize_workspace
+from server.stream import (
+    AgentTurnStreamer,
+    ApprovalHub,
+    FakeTurnStreamer,
+    TurnRunner,
+    thread_history,
+)
+
+
+# One agent per workspace for the whole process: each connection sharing the same
+# checkpointer is what makes history survive page reloads (and avoids leaking sqlite conns).
+_AGENTS: dict[str, object] = {}
+_AGENT_LOCK = asyncio.Lock()
+
+
+async def _shared_agent(cfg: HarnessConfig, workspace: str):
+    from agent.factory import create_harness_agent
+    from config.persist import build_checkpointer_async, build_store_async
+
+    key = normalize_workspace(workspace or cfg.workspace_root)
+    async with _AGENT_LOCK:
+        agent = _AGENTS.get(key)
+        if agent is None:
+            updated = cfg.model_copy(update={"workspace_root": key})
+            checkpointer = await build_checkpointer_async(updated)
+            store = await build_store_async(updated)
+            agent = create_harness_agent(updated, store=store, checkpointer=checkpointer)
+            _AGENTS[key] = agent
+        return agent
 
 
 class RpcDispatchError(Exception):
@@ -73,11 +102,14 @@ class RpcDispatcher:
         message = parse_message(raw)
         if not isinstance(message, RpcRequest):
             return
-        if message.method != "turn/start":
+        if message.method not in {"turn/start", "thread/history"}:
             for item in self.handle(raw):
                 yield item
             return
         try:
+            if message.method == "thread/history":
+                yield dumps_message(RpcResponse(id=message.id, result=await self._thread_history(message)))
+                return
             thread_id, text = await self._prepare_turn(message)
             async for note in self._runner.stream(thread_id, text):
                 yield dumps_message(note)
@@ -89,18 +121,23 @@ class RpcDispatcher:
                 RpcResponse(id=message.id, error=RpcError(code=-32000, message=str(exc)))
             )
 
+    async def _thread_history(self, request: RpcRequest) -> dict:
+        if not self._initialized:
+            raise RpcDispatchError("Not initialized")
+        params = ThreadResumeParams.model_validate(request.params)
+        info = self._threads.get(params.thread_id)
+        if info is None:
+            raise RpcDispatchError("Unknown thread")
+        await self._ensure_agent(info.workspace)
+        items = await thread_history(self._agent, params.thread_id)
+        return {"items": [item.model_dump(mode="json") for item in items]}
+
     async def _ensure_agent(self, workspace: str) -> None:
         if self._agent is not None:
             return
         if self._cfg is None or not self._cfg.deepseek_api_key:
             return
-        from agent.factory import create_harness_agent
-        from config.persist import build_checkpointer_async, build_store_async
-
-        updated = self._cfg.model_copy(update={"workspace_root": workspace or self._cfg.workspace_root})
-        checkpointer = await build_checkpointer_async(updated)
-        store = await build_store_async(updated)
-        self._agent = create_harness_agent(updated, store=store, checkpointer=checkpointer)
+        self._agent = await _shared_agent(self._cfg, workspace)
         self._runner = TurnRunner(AgentTurnStreamer(self._agent))
 
     async def _prepare_turn(self, request: RpcRequest) -> tuple[str, str]:

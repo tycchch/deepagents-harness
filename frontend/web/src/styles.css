@@ -25,7 +25,9 @@ a { color: inherit; text-decoration: none; }
 .app {
   display: grid;
   grid-template-columns: 220px 1fr;
+  grid-template-rows: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .nav {
@@ -35,6 +37,8 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   padding: 16px 12px;
   gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .brand { font-weight: 650; letter-spacing: 0.04em; padding: 4px 8px 12px; }
@@ -48,8 +52,16 @@ a { color: inherit; text-decoration: none; }
 .nav .ok { color: var(--accent); }
 .nav .bad { color: var(--danger); }
 
-.page { display: flex; flex-direction: column; min-width: 0; height: 100%; }
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
 .page header {
+  flex: 0 0 auto;
   padding: 14px 20px;
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -59,26 +71,96 @@ a { color: inherit; text-decoration: none; }
 }
 .page header h1 { margin: 0; font-size: 16px; font-weight: 600; }
 .page header p, .hint { margin: 0; color: var(--muted); font-size: 13px; }
-.page main { flex: 1; overflow: auto; padding: 16px 20px; }
-
-.messages { display: flex; flex-direction: column; gap: 12px; }
-.bubble {
-  max-width: 780px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  white-space: pre-wrap;
-  line-height: 1.5;
+.page main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px;
 }
-.bubble.user { background: var(--user); margin-left: auto; }
-.bubble.agent { background: var(--bg-2); }
-.bubble.pending { opacity: 0.75; }
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+.msg { line-height: 1.7; }
+.msg.user {
+  align-self: flex-end;
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--user);
+  white-space: pre-wrap;
+}
+.msg.agent { white-space: normal; }
+.msg.agent.pending { opacity: 0.85; }
+.msg .prose { margin: 0 0 12px; white-space: pre-wrap; }
+.msg .prose:last-child { margin-bottom: 0; }
+.msg .prose code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--bg-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.dots { color: var(--muted); }
+
+.thinking {
+  border-left: 2px solid var(--line);
+  padding-left: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.thinking summary { cursor: pointer; font-style: italic; }
+.thinking > div { margin-top: 6px; white-space: pre-wrap; line-height: 1.6; }
+
+.code {
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0e1014;
+}
+.code figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--bg-3);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.code figcaption button {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.code figcaption button:hover { color: var(--text); border-color: #3d4554; }
+.code pre {
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
 
 .card {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 10px;
   overflow: hidden;
-  max-width: 780px;
+  max-width: 100%;
 }
 .card summary {
   padding: 8px 12px;
@@ -99,10 +181,18 @@ a { color: inherit; text-decoration: none; }
 .diff .del { color: #f07a7a; }
 
 .composer {
+  flex: 0 0 auto;
   border-top: 1px solid var(--line);
+  background: var(--bg);
   padding: 12px 20px;
+}
+.composer-inner {
   display: flex;
   gap: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  align-items: flex-end;
 }
 .composer textarea {
   flex: 1;

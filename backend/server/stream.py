@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterable
 
 from protocol.events import ApprovalRequestParams, ItemEvent, ItemType
 from protocol.frame import RpcNotification
@@ -111,6 +111,61 @@ def _tool_detail(args: object) -> tuple[str | None, str | None]:
     path = args.get("path") or args.get("file_path")
     text = args.get("command") or args.get("cmd") or args.get("query")
     return (str(path) if path else None), (str(text) if text else None)
+
+
+def messages_to_items(messages: Iterable[object]) -> list[ItemEvent]:
+    items: list[ItemEvent] = []
+    for index, message in enumerate(messages):
+        type_name = type(message).__name__
+        name = getattr(message, "name", "") or ""
+        text = _content_text(getattr(message, "content", ""))
+        if "Human" in type_name:
+            if text:
+                items.append(ItemEvent(item_id=f"h{index}", type=ItemType.USER_MESSAGE, text=text))
+            continue
+        if "Tool" in type_name:
+            items.append(
+                ItemEvent(
+                    item_id=f"h{index}",
+                    type=_tool_item_type(name),
+                    text=text or None,
+                    tool=name or None,
+                )
+            )
+            continue
+        if "AI" not in type_name:
+            continue
+        reasoning = _reasoning_text(message)
+        if reasoning:
+            items.append(ItemEvent(item_id=f"h{index}-think", type=ItemType.REASONING, text=reasoning))
+        for pos, call in enumerate(_tool_calls(message)):
+            tool_name = str(call.get("name") or "")
+            path, detail = _tool_detail(call.get("args"))
+            items.append(
+                ItemEvent(
+                    item_id=f"h{index}-call{pos}",
+                    type=_tool_item_type(tool_name),
+                    text=detail,
+                    tool=tool_name or None,
+                    path=path,
+                )
+            )
+        if text:
+            items.append(ItemEvent(item_id=f"h{index}-msg", type=ItemType.AGENT_MESSAGE, text=text))
+    return items
+
+
+async def thread_history(agent, thread_id: str) -> list[ItemEvent]:
+    if agent is None:
+        return []
+    config = {"configurable": {"thread_id": thread_id}}
+    try:
+        state = await agent.aget_state(config)
+    except Exception:
+        return []
+    values = getattr(state, "values", None) or {}
+    messages = values.get("messages") or []
+    return messages_to_items(messages)
 
 
 def map_stream_event(mode: str, payload: object) -> list[RpcNotification]:

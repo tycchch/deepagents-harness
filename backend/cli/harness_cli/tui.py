@@ -103,6 +103,30 @@ class TurnView:
             self.console.print(event.text, end="")
 
 
+async def _print_history(console: Console, client: HarnessClient, thread_id: str) -> None:
+    try:
+        result, _ = await client.request("thread/history", {"thread_id": thread_id})
+    except HarnessRpcError:
+        return
+    items = result.get("items") or []
+    if not items:
+        return
+    _divider(console, "history")
+    for raw in items:
+        event = ItemEvent.model_validate(raw)
+        if event.type == ItemType.USER_MESSAGE:
+            console.print(f"[bold]>[/] {event.text or ''}")
+        elif event.type == ItemType.AGENT_MESSAGE:
+            console.print(event.text or "")
+        elif event.type == ItemType.REASONING:
+            snippet = (event.text or "").replace("\n", " ").strip()
+            if len(snippet) > 90:
+                snippet = snippet[:87] + "..."
+            console.print(f"[dim italic]  {snippet}[/]")
+        else:
+            console.print(_tool_line(event, done=True))
+
+
 def _ask_approval(console: Console, params: dict, *, auto_approve: bool) -> dict:
     request_id = str(params.get("request_id") or "")
     if auto_approve:
@@ -202,6 +226,8 @@ async def run_session(
                 thread_id=tid,
                 resumed=resumed,
             )
+            if resumed:
+                await _print_history(console, client, tid)
 
         async def _run_turn(text: str) -> None:
             _divider(console)

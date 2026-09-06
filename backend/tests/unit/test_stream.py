@@ -88,6 +88,43 @@ def test_map_tool_message_to_command() -> None:
     assert notes[0].params["type"] == "command_execution"
 
 
+def test_messages_to_items_rebuilds_conversation() -> None:
+    from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+
+    from server.stream import messages_to_items
+
+    items = messages_to_items(
+        [
+            HumanMessage(content="列一下 /memories"),
+            AIMessage(content="", tool_calls=[{"name": "ls", "args": {"path": "/memories"}, "id": "c1"}]),
+            ToolMessage(content="empty", tool_call_id="c1", name="ls"),
+            AIMessage(content="目录是空的"),
+        ]
+    )
+    assert [item.type.value for item in items] == [
+        "user_message",
+        "tool_call",
+        "tool_call",
+        "agent_message",
+    ]
+    assert items[0].text == "列一下 /memories"
+    assert items[1].path == "/memories"
+    assert items[-1].text == "目录是空的"
+    assert len({item.item_id for item in items}) == len(items)
+
+
+@pytest.mark.asyncio
+async def test_thread_history_without_checkpointer_is_empty() -> None:
+    from server.stream import thread_history
+
+    class _NoState:
+        async def aget_state(self, config):
+            raise ValueError("No checkpointer set")
+
+    assert await thread_history(_NoState(), "t1") == []
+    assert await thread_history(None, "t1") == []
+
+
 @pytest.mark.asyncio
 async def test_second_turn_rejected_while_busy() -> None:
     runner = TurnRunner(FakeTurnStreamer(delay_s=1.0))

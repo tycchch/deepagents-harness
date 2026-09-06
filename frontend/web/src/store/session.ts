@@ -13,6 +13,7 @@ import type {
 } from "../protocol/types";
 
 const WORKSPACE_KEY = "harness.workspace";
+const THREAD_KEY = "harness.thread";
 
 export type ChatItem = ItemEvent & { pending?: boolean };
 
@@ -61,6 +62,8 @@ type SetState = (
 ) => void;
 
 let notesBound = false;
+// Server reuses item ids ("msg"/"think") per turn; scope them so turns don't merge.
+let turnSeq = 0;
 
 function applyNote(note: RpcNotification, set: SetState): void {
   const params = asRecord(note.params);
@@ -78,7 +81,7 @@ function applyNote(note: RpcNotification, set: SetState): void {
   }
   if (!note.method.startsWith("item/")) return;
   const incoming: ChatItem = {
-    item_id: String(params.item_id ?? "item"),
+    item_id: `t${turnSeq}:${String(params.item_id ?? "item")}`,
     type: (params.type as ItemType) || "agent_message",
     text: (params.text as string | null | undefined) ?? "",
     tool: (params.tool as string | null | undefined) ?? null,
@@ -86,6 +89,15 @@ function applyNote(note: RpcNotification, set: SetState): void {
     pending: note.method !== "item/completed",
   };
   setItem(set, incoming, note.method === "item/delta");
+}
+
+async function fetchHistory(threadId: string): Promise<ChatItem[]> {
+  try {
+    const result = asRecord(await getClient().request("thread/history", { thread_id: threadId }));
+    return ((result.items as ItemEvent[]) ?? []).map((item) => ({ ...item, pending: false }));
+  } catch {
+    return [];
+  }
 }
 
 function setItem(
@@ -139,6 +151,14 @@ export const useHarness = create<HarnessState>((set, get) => ({
       set({ connected: true, connecting: false });
       await get().refreshThreads();
       await get().refreshConfig();
+      const last = localStorage.getItem(THREAD_KEY);
+      if (last && !get().thread) {
+        try {
+          await get().resumeThread(last);
+        } catch {
+          localStorage.removeItem(THREAD_KEY);
+        }
+      }
     } catch (err) {
       set({
         connected: false,
@@ -169,6 +189,7 @@ export const useHarness = create<HarnessState>((set, get) => ({
     const info = (await getClient().request("thread/start", {
       workspace: ws,
     })) as ThreadInfo;
+    localStorage.setItem(THREAD_KEY, info.thread_id);
     set({ thread: info, items: [], busy: false, workspace: ws });
     await get().refreshThreads();
     return info;
@@ -178,13 +199,19 @@ export const useHarness = create<HarnessState>((set, get) => ({
     const info = (await getClient().request("thread/resume", {
       thread_id: threadId,
     })) as ThreadInfo;
+    localStorage.setItem(THREAD_KEY, info.thread_id);
     set({ thread: info, items: [], busy: false, workspace: info.workspace || get().workspace });
+    const history = await fetchHistory(threadId);
+    if (get().thread?.thread_id === threadId) set({ items: history });
     return info;
   },
 
   archiveThread: async (threadId: string) => {
     await getClient().request("thread/archive", { thread_id: threadId });
-    if (get().thread?.thread_id === threadId) set({ thread: null, items: [] });
+    if (get().thread?.thread_id === threadId) {
+      localStorage.removeItem(THREAD_KEY);
+      set({ thread: null, items: [] });
+    }
     await get().refreshThreads();
   },
 
@@ -196,6 +223,7 @@ export const useHarness = create<HarnessState>((set, get) => ({
   send: async (text: string) => {
     let thread = get().thread;
     if (!thread) thread = await get().startThread();
+    turnSeq += 1;
     set((state) => ({
       busy: true,
       error: "",
