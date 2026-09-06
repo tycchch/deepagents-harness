@@ -14,6 +14,7 @@ from protocol.methods import (
     SkillsWriteParams,
     ThreadRenameParams,
     ThreadResumeParams,
+    ThreadSetWorkspaceParams,
     ThreadStartParams,
     TurnInterruptParams,
     TurnStartParams,
@@ -151,11 +152,12 @@ class RpcDispatcher:
         return {"items": [item.model_dump(mode="json") for item in items]}
 
     async def _ensure_agent(self, workspace: str) -> None:
-        if self._agent is not None:
-            return
         if self._cfg is None or not self._cfg.deepseek_api_key:
             return
-        self._agent = await _shared_agent(self._cfg, workspace)
+        agent = await _shared_agent(self._cfg, workspace)
+        if agent is self._agent:
+            return
+        self._agent = agent
         self._runner = TurnRunner(AgentTurnStreamer(self._agent))
 
     async def _prepare_turn(self, request: RpcRequest) -> tuple[str, str]:
@@ -205,6 +207,13 @@ class RpcDispatcher:
                     for item in self._threads.list(include_archived=include_archived)
                 ]
             }, []
+
+        if request.method == "thread/set_workspace":
+            params = ThreadSetWorkspaceParams.model_validate(request.params)
+            info = self._threads.set_workspace(params.thread_id, params.workspace)
+            if info is None:
+                raise RpcDispatchError("Unknown thread")
+            return info.model_dump(mode="json"), []
 
         if request.method == "thread/rename":
             params = ThreadRenameParams.model_validate(request.params)

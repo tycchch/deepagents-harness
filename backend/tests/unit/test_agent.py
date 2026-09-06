@@ -92,3 +92,5 @@ def test_factory_passes_skills_permissions_and_name(tmp_path: Path) -> None:
     assert captured["checkpointer"] is not None
     assert captured["store"] is not None
     assert captured["backend"] is not None
+    assert str(workspace) in captured["system_prompt"]
+    assert "/workspace/" in captured["system_prompt"]

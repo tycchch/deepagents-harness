@@ -31,7 +31,7 @@ type HarnessState = {
   config: ConfigMap;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
-  setWorkspace: (path: string) => void;
+  setWorkspace: (path: string) => Promise<void>;
   refreshThreads: () => Promise<void>;
   startThread: (workspace?: string) => Promise<ThreadInfo>;
   resumeThread: (threadId: string) => Promise<ThreadInfo>;
@@ -184,9 +184,25 @@ export const useHarness = create<HarnessState>((set, get) => ({
     set({ connected: false, busy: false });
   },
 
-  setWorkspace: (path: string) => {
-    localStorage.setItem(WORKSPACE_KEY, path);
-    set({ workspace: path });
+  setWorkspace: async (path: string) => {
+    const next = path.trim();
+    localStorage.setItem(WORKSPACE_KEY, next);
+    set({ workspace: next });
+    const thread = get().thread;
+    if (!thread || !get().connected || !next) return;
+    try {
+      const info = (await getClient().request("thread/set_workspace", {
+        thread_id: thread.thread_id,
+        workspace: next,
+      })) as ThreadInfo;
+      set((state) => ({
+        error: "",
+        thread: state.thread?.thread_id === info.thread_id ? info : state.thread,
+        threads: state.threads.map((item) => (item.thread_id === info.thread_id ? info : item)),
+      }));
+    } catch (err) {
+      set({ error: failure(err, "切换 workspace") });
+    }
   },
 
   refreshThreads: async () => {

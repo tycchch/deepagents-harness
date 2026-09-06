@@ -99,6 +99,15 @@ class ThreadStore:
         self._save()
         return True
 
+    def set_workspace(self, thread_id: str, workspace: str) -> ThreadInfo | None:
+        record = self._items.get(thread_id)
+        if record is None:
+            return None
+        record.workspace = normalize_workspace(workspace)
+        record.updated_at = _now()
+        self._save()
+        return record.to_info()
+
     def rename(self, thread_id: str, title: str) -> ThreadInfo | None:
         record = self._items.get(thread_id)
         if record is None:

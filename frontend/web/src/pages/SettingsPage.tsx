@@ -27,13 +27,13 @@ export default function SettingsPage() {
       <header>
         <div>
           <h1>Settings</h1>
-          <p>workspace 存在本机；模型 / sandbox 走 config/*</p>
+          <p>workspace 是整棵项目目录。智能体工具只能走虚拟路径 /workspace/，对应下面填的本机路径。</p>
         </div>
         <button
           type="button"
           className="btn"
           onClick={() => {
-            setWorkspace(localWs.trim());
+            void setWorkspace(localWs.trim());
             if (connected) {
               void setConfig({
                 model,
@@ -47,8 +47,11 @@ export default function SettingsPage() {
       </header>
       <main>
         <div className="field">
-          <label>workspace</label>
+          <label>workspace（整目录，不是单个文件）</label>
           <input value={localWs} onChange={(e) => setLocalWs(e.target.value)} placeholder="E:\workSpace\deepagentsSpace" />
+          <p className="hint">
+            保存后立刻套到当前会话。智能体请用 ls /workspace、读 /workspace/foo.py，不要传 E:\ 这种本机路径。
+          </p>
         </div>
         <div className="field">
           <label>model</label>

@@ -143,6 +143,25 @@ async def test_delete_thread(tmp_path) -> None:
     assert again.error is not None
 
 
+def test_set_workspace_on_existing_thread(tmp_path) -> None:
+    disp = RpcDispatcher(store=ThreadStore(tmp_path / "threads.json"))
+    _init(disp)
+    started = parse_message(
+        disp.handle(_req("thread/start", ThreadStartParams(workspace="E:/repo").model_dump(), id=2))[0]
+    )
+    thread_id = started.result["thread_id"]
+    moved = parse_message(
+        disp.handle(
+            _req("thread/set_workspace", {"thread_id": thread_id, "workspace": "E:/other"}, id=3)
+        )[0]
+    )
+    from server.session import normalize_workspace
+
+    assert normalize_workspace(moved.result["workspace"]) == normalize_workspace("E:/other")
+    listed = parse_message(disp.handle(_req("thread/list", {}, id=4))[0])
+    assert normalize_workspace(listed.result["threads"][0]["workspace"]) == normalize_workspace("E:/other")
+
+
 def test_shared_store_across_dispatchers(tmp_path) -> None:
     store = ThreadStore(tmp_path / "threads.json")
     a = RpcDispatcher(store=store)

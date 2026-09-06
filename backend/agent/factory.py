@@ -2,7 +2,7 @@ from deepagents import create_deep_agent
 
 from agent.backends import build_backend
 from agent.permissions import build_interrupt_on, build_permissions
-from agent.prompts import SYSTEM_PROMPT
+from agent.prompts import build_system_prompt
 from agent.tools import build_tools
 from config.persist import build_checkpointer, build_store
 from config.schema import HarnessConfig
@@ -34,7 +34,7 @@ def create_harness_agent(
     checkpointer = checkpointer or build_checkpointer(cfg)
     return create_deep_agent(
         model=build_chat_model(cfg),
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=build_system_prompt(cfg.workspace_root),
         backend=build_backend(cfg, context=context),
         store=store,
         skills=["/skills/shared/", "/skills/personal/"],

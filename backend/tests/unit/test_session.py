@@ -43,6 +43,17 @@ def test_rename_beats_auto_title(tmp_path) -> None:
     assert store.rename("nope", "x") is None
 
 
+def test_set_workspace_rebinds_thread(tmp_path) -> None:
+    store = ThreadStore(tmp_path / "threads.json")
+    info = store.start(str(tmp_path / "old"))
+    other = tmp_path / "new"
+    other.mkdir()
+    moved = store.set_workspace(info.thread_id, str(other))
+    assert moved is not None
+    assert normalize_workspace(moved.workspace) == normalize_workspace(str(other))
+    assert store.set_workspace("nope", str(other)) is None
+
+
 def test_delete_removes_record(tmp_path) -> None:
     path = tmp_path / "threads.json"
     store = ThreadStore(path)

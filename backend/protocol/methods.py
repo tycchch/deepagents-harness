@@ -50,6 +50,11 @@ class ThreadRenameParams(BaseModel):
     title: str
 
 
+class ThreadSetWorkspaceParams(BaseModel):
+    thread_id: str
+    workspace: str
+
+
 class TurnStartParams(BaseModel):
     thread_id: str
     text: str
