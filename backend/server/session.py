@@ -20,6 +20,7 @@ class ThreadRecord(BaseModel):
     title: str = ""
     updated_at: str = ""
     archived: bool = False
+    title_locked: bool = False
 
     def to_info(self) -> ThreadInfo:
         return ThreadInfo(
@@ -77,6 +78,12 @@ class ThreadStore:
                     return item
         return None
 
+    def delete(self, thread_id: str) -> bool:
+        if self._items.pop(thread_id, None) is None:
+            return False
+        self._save()
+        return True
+
     def archive(self, thread_id: str) -> bool:
         return self._set_archived(thread_id, True)
 
@@ -92,12 +99,22 @@ class ThreadStore:
         self._save()
         return True
 
+    def rename(self, thread_id: str, title: str) -> ThreadInfo | None:
+        record = self._items.get(thread_id)
+        if record is None:
+            return None
+        record.title = title.strip()
+        record.title_locked = bool(record.title)
+        self._save()
+        return record.to_info()
+
     def touch(self, thread_id: str, title: str | None = None) -> None:
         record = self._items.get(thread_id)
         if record is None:
             return
         record.updated_at = _now()
-        if title is not None:
+        # Auto title comes from the first message; a manual rename wins forever.
+        if title is not None and not record.title_locked and not record.title:
             record.title = title
         self._save()
 

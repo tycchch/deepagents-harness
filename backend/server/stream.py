@@ -168,6 +168,17 @@ async def thread_history(agent, thread_id: str) -> list[ItemEvent]:
     return messages_to_items(messages)
 
 
+async def delete_thread_state(agent, thread_id: str) -> None:
+    """Best effort: metadata is the source of truth, checkpoints are just cache."""
+    checkpointer = getattr(agent, "checkpointer", None)
+    if checkpointer is None:
+        return
+    try:
+        await checkpointer.adelete_thread(thread_id)
+    except Exception:
+        return
+
+
 def map_stream_event(mode: str, payload: object) -> list[RpcNotification]:
     if mode != "messages":
         return []

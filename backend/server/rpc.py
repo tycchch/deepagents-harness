@@ -12,6 +12,7 @@ from protocol.methods import (
     InitializeParams,
     InitializeResult,
     SkillsWriteParams,
+    ThreadRenameParams,
     ThreadResumeParams,
     ThreadStartParams,
     TurnInterruptParams,
@@ -23,6 +24,7 @@ from server.stream import (
     ApprovalHub,
     FakeTurnStreamer,
     TurnRunner,
+    delete_thread_state,
     thread_history,
 )
 
@@ -102,13 +104,16 @@ class RpcDispatcher:
         message = parse_message(raw)
         if not isinstance(message, RpcRequest):
             return
-        if message.method not in {"turn/start", "thread/history"}:
+        if message.method not in {"turn/start", "thread/history", "thread/delete"}:
             for item in self.handle(raw):
                 yield item
             return
         try:
             if message.method == "thread/history":
                 yield dumps_message(RpcResponse(id=message.id, result=await self._thread_history(message)))
+                return
+            if message.method == "thread/delete":
+                yield dumps_message(RpcResponse(id=message.id, result=await self._thread_delete(message)))
                 return
             thread_id, text = await self._prepare_turn(message)
             async for note in self._runner.stream(thread_id, text):
@@ -120,6 +125,19 @@ class RpcDispatcher:
             yield dumps_message(
                 RpcResponse(id=message.id, error=RpcError(code=-32000, message=str(exc)))
             )
+
+    async def _thread_delete(self, request: RpcRequest) -> dict:
+        if not self._initialized:
+            raise RpcDispatchError("Not initialized")
+        params = ThreadResumeParams.model_validate(request.params)
+        info = self._threads.get(params.thread_id)
+        if info is None:
+            raise RpcDispatchError("Unknown thread")
+        self._runner.interrupt(params.thread_id)
+        await self._ensure_agent(info.workspace)
+        await delete_thread_state(self._agent, params.thread_id)
+        self._threads.delete(params.thread_id)
+        return {}
 
     async def _thread_history(self, request: RpcRequest) -> dict:
         if not self._initialized:
@@ -187,6 +205,13 @@ class RpcDispatcher:
                     for item in self._threads.list(include_archived=include_archived)
                 ]
             }, []
+
+        if request.method == "thread/rename":
+            params = ThreadRenameParams.model_validate(request.params)
+            info = self._threads.rename(params.thread_id, params.title)
+            if info is None:
+                raise RpcDispatchError("Unknown thread")
+            return info.model_dump(mode="json"), []
 
         if request.method == "thread/archive":
             params = ThreadResumeParams.model_validate(request.params)

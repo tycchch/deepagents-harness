@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useHarness } from "../store/session";
+import SessionNav from "./SessionNav";
 
 export default function Layout() {
   const connected = useHarness((s) => s.connected);
@@ -17,9 +18,9 @@ export default function Layout() {
       <nav className="nav">
         <div className="brand">HARNESS</div>
         <NavLink to="/chat">Chat</NavLink>
-        <NavLink to="/sessions">Sessions</NavLink>
         <NavLink to="/skills">Skills</NavLink>
         <NavLink to="/settings">Settings</NavLink>
+        <SessionNav />
         <div className={`status ${connected ? "ok" : "bad"}`}>
           {connecting ? "连接中…" : connected ? "已连接 App Server" : "未连接"}
           {!connected && !connecting ? (

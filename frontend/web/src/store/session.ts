@@ -35,6 +35,9 @@ type HarnessState = {
   refreshThreads: () => Promise<void>;
   startThread: (workspace?: string) => Promise<ThreadInfo>;
   resumeThread: (threadId: string) => Promise<ThreadInfo>;
+  renameThread: (threadId: string, title: string) => Promise<void>;
+  deleteThread: (threadId: string) => Promise<void>;
+  newDraft: () => void;
   archiveThread: (threadId: string) => Promise<void>;
   unarchiveThread: (threadId: string) => Promise<void>;
   send: (text: string) => Promise<void>;
@@ -55,6 +58,14 @@ function workspaceOf(): string {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function failure(err: unknown, what: string): string {
+  const reason = err instanceof RpcError ? err.message : String(err);
+  if (reason.includes("Unknown method")) {
+    return `${what}失败：App Server 是旧版本，重启一下 .\\start-server.ps1`;
+  }
+  return `${what}失败：${reason}`;
 }
 
 type SetState = (
@@ -206,6 +217,41 @@ export const useHarness = create<HarnessState>((set, get) => ({
     return info;
   },
 
+  renameThread: async (threadId: string, title: string) => {
+    try {
+      const info = (await getClient().request("thread/rename", {
+        thread_id: threadId,
+        title,
+      })) as ThreadInfo;
+      set((state) => ({
+        error: "",
+        threads: state.threads.map((item) => (item.thread_id === info.thread_id ? info : item)),
+        thread: state.thread?.thread_id === info.thread_id ? info : state.thread,
+      }));
+    } catch (err) {
+      set({ error: failure(err, "重命名") });
+    }
+  },
+
+  deleteThread: async (threadId: string) => {
+    try {
+      await getClient().request("thread/delete", { thread_id: threadId });
+    } catch (err) {
+      set({ error: failure(err, "删除") });
+      return;
+    }
+    if (get().thread?.thread_id === threadId) {
+      localStorage.removeItem(THREAD_KEY);
+      set({ thread: null, items: [], busy: false });
+    }
+    await get().refreshThreads();
+  },
+
+  newDraft: () => {
+    localStorage.removeItem(THREAD_KEY);
+    set({ thread: null, items: [], busy: false, approval: null, error: "" });
+  },
+
   archiveThread: async (threadId: string) => {
     await getClient().request("thread/archive", { thread_id: threadId });
     if (get().thread?.thread_id === threadId) {
@@ -222,7 +268,14 @@ export const useHarness = create<HarnessState>((set, get) => ({
 
   send: async (text: string) => {
     let thread = get().thread;
-    if (!thread) thread = await get().startThread();
+    if (!thread) {
+      try {
+        thread = await get().startThread();
+      } catch (err) {
+        set({ error: failure(err, "新建会话") });
+        return;
+      }
+    }
     turnSeq += 1;
     set((state) => ({
       busy: true,

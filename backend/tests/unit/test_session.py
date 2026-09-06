@@ -29,6 +29,30 @@ def test_latest_for_workspace_is_newest(tmp_path) -> None:
     assert normalize_workspace(found.workspace) == normalize_workspace(str(tmp_path / "ws"))
 
 
+def test_rename_beats_auto_title(tmp_path) -> None:
+    store = ThreadStore(tmp_path / "threads.json")
+    info = store.start("E:/repo")
+    store.touch(info.thread_id, title="第一条消息")
+    assert store.get(info.thread_id).title == "第一条消息"
+
+    renamed = store.rename(info.thread_id, "  重构计划  ")
+    assert renamed.title == "重构计划"
+    store.touch(info.thread_id, title="后来的消息")
+    assert store.get(info.thread_id).title == "重构计划"
+    assert ThreadStore(tmp_path / "threads.json").get(info.thread_id).title == "重构计划"
+    assert store.rename("nope", "x") is None
+
+
+def test_delete_removes_record(tmp_path) -> None:
+    path = tmp_path / "threads.json"
+    store = ThreadStore(path)
+    info = store.start("E:/repo")
+    assert store.delete(info.thread_id) is True
+    assert store.get(info.thread_id) is None
+    assert store.delete(info.thread_id) is False
+    assert ThreadStore(path).get(info.thread_id) is None
+
+
 def test_persist_reload(tmp_path) -> None:
     path = tmp_path / "threads.json"
     first = ThreadStore(path)

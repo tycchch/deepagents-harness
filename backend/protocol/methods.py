@@ -45,6 +45,11 @@ class ThreadResumeParams(BaseModel):
     thread_id: str
 
 
+class ThreadRenameParams(BaseModel):
+    thread_id: str
+    title: str
+
+
 class TurnStartParams(BaseModel):
     thread_id: str
     text: str

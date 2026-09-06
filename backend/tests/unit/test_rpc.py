@@ -1,3 +1,5 @@
+import pytest
+
 from protocol.frame import RpcNotification, RpcRequest, RpcResponse, parse_message
 from protocol.methods import (
     ApprovalResolveParams,
@@ -102,6 +104,43 @@ def test_thread_list_resume_archive(tmp_path) -> None:
     disp.handle(_req("thread/unarchive", ThreadResumeParams(thread_id=thread_id).model_dump(), id=8))
     listed = parse_message(disp.handle(_req("thread/list", {}, id=9))[0])
     assert listed.result["threads"][0]["thread_id"] == thread_id
+
+
+def test_rename_thread(tmp_path) -> None:
+    disp = RpcDispatcher(store=ThreadStore(tmp_path / "threads.json"))
+    _init(disp)
+    started = parse_message(
+        disp.handle(_req("thread/start", ThreadStartParams(workspace="E:/repo").model_dump(), id=2))[0]
+    )
+    thread_id = started.result["thread_id"]
+
+    renamed = parse_message(
+        disp.handle(_req("thread/rename", {"thread_id": thread_id, "title": "重构计划"}, id=3))[0]
+    )
+    assert renamed.result["title"] == "重构计划"
+    listed = parse_message(disp.handle(_req("thread/list", {}, id=4))[0])
+    assert listed.result["threads"][0]["title"] == "重构计划"
+
+    missing = parse_message(disp.handle(_req("thread/rename", {"thread_id": "nope", "title": "x"}, id=5))[0])
+    assert missing.error is not None
+
+
+@pytest.mark.asyncio
+async def test_delete_thread(tmp_path) -> None:
+    disp = RpcDispatcher(store=ThreadStore(tmp_path / "threads.json"))
+    _init(disp)
+    started = parse_message(
+        disp.handle(_req("thread/start", ThreadStartParams(workspace="E:/repo").model_dump(), id=2))[0]
+    )
+    thread_id = started.result["thread_id"]
+
+    reply = parse_message((await disp.ahandle(_req("thread/delete", {"thread_id": thread_id}, id=3)))[-1])
+    assert reply.error is None
+    listed = parse_message(disp.handle(_req("thread/list", {"include_archived": True}, id=4))[0])
+    assert listed.result["threads"] == []
+
+    again = parse_message((await disp.ahandle(_req("thread/delete", {"thread_id": thread_id}, id=5)))[-1])
+    assert again.error is not None
 
 
 def test_shared_store_across_dispatchers(tmp_path) -> None:

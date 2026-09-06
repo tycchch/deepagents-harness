@@ -30,7 +30,9 @@ export default function ChatPage() {
         <div>
           <h1>Chat</h1>
           <p>
-            {thread ? `${thread.title || "未命名"} · ${thread.thread_id.slice(0, 8)}` : "新会话"}
+            {thread
+              ? `${thread.title || "未命名"} · ${thread.thread_id.slice(0, 8)}`
+              : "新会话 · 发出第一条消息时才创建"}
             {workspace ? ` · ${workspace}` : ""}
           </p>
         </div>
