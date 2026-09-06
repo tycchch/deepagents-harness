@@ -1,0 +1,67 @@
+backend/server/stream.py
+  s_01d9c97511821f::t_1c4c4a3d0db1d0 116-170
+  s_01d9c97511821f::t_c3c482457edb68 4
+frontend/web/src/components/Composer.tsx
+  s_01d9c97511821f::t_72d7e4cd34eefc 22-44
+backend/server/rpc.py
+  s_01d9c97511821f::t_18c45727d92900 21-27
+  s_01d9c97511821f::t_12a7f5e88fd98c 3
+  s_01d9c97511821f::t_fe298d54fe11ad 20
+  s_01d9c97511821f::t_daa44fb0934068 28-29,105,110-112,124-134
+  s_01d9c97511821f::t_e976ae3f5bbc54 30-49
+  s_01d9c97511821f::t_b10cd774ce289d 140
+frontend/web/src/store/session.ts
+  s_01d9c97511821f::t_f35f706cc5c23b 204-205
+  s_01d9c97511821f::t_cd860008b3b0c4 202
+  s_01d9c97511821f::t_279814c88424b4 65-66
+  s_01d9c97511821f::t_47515247135c37 84
+  s_01d9c97511821f::t_567219e2c4f0b4 154-161
+  s_01d9c97511821f::t_bbb27461e20ca5 211-214
+  s_01d9c97511821f::t_07ae18616f3f0a 226
+  s_01d9c97511821f::t_54685f98ca8b68 16
+  s_01d9c97511821f::t_58acab1e45f929 94-102
+  s_01d9c97511821f::t_da1018fd5462f6 192
+frontend/web/src/styles.css
+  s_01d9c97511821f::t_b9ddc8e413f290 82-98,101-156
+  s_01d9c97511821f::t_be1b8d143414a2 28,30,40-41
+  s_01d9c97511821f::t_bf95f675562813 163
+  s_01d9c97511821f::t_ba195b07e71360 184,186,188-189,195
+  s_01d9c97511821f::t_e06fe9e910b4be 192-194
+  s_01d9c97511821f::t_480ca4312cd8a8 74-80
+  s_01d9c97511821f::t_1ac38f466e58c8 55-62,64
+frontend/web/src/components/MessageList.tsx
+  s_01d9c97511821f::t_ab73519d424792 10,13-16,18
+  s_01d9c97511821f::t_2622d2f9919d03 1,4-5,9,11-12,20-21,23,29,34-36,44-45,49
+  s_01d9c97511821f::t_981465ddf7ea08 17,19
+backend/cli/harness_cli/tui.py
+  s_0277176d6ef0c1::t_51a254b8ee2f39 106-129,229-230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d9eef35ed98121ffe89db96e42e7d9d23e04c8b6",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "claude-opus-5"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    },
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
