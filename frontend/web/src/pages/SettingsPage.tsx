@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useHarness } from "../store/session";
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const workspace = useHarness((s) => s.workspace);
   const config = useHarness((s) => s.config);
   const connected = useHarness((s) => s.connected);
@@ -29,6 +32,17 @@ export default function SettingsPage() {
           <h1>Settings</h1>
           <p>workspace 是整棵项目目录。智能体工具只能走虚拟路径 /workspace/，对应下面填的本机路径。</p>
         </div>
+        <div className="actions" style={{ marginTop: 0 }}>
+        <button
+          type="button"
+          className="btn secondary"
+          onClick={() => {
+            if (location.key === "default") navigate("/chat");
+            else navigate(-1);
+          }}
+        >
+          返回
+        </button>
         <button
           type="button"
           className="btn"
@@ -44,6 +58,7 @@ export default function SettingsPage() {
         >
           保存
         </button>
+        </div>
       </header>
       <main>
         <div className="field">
