@@ -1,0 +1,31 @@
+backend/server/stream.py
+  s_01d9c97511821f::t_4b6f6f3adaaaa1 199-202
+frontend/web/src/components/MessageList.tsx
+  s_01d9c97511821f::t_324ce60af14cf7 20
+  s_01d9c97511821f::t_5c9866c4147c74 4,72,74-76
+  s_01d9c97511821f::t_0f9cad78e7e0b1 5-19,21-43,62-63,65-66,71,73,77
+frontend/web/src/styles.css
+  s_01d9c97511821f::t_35bb8a7dc92e30 182,200,236-237
+  s_01d9c97511821f::t_5baab18d0ce203 178-181,183-199,201-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9e06ed97e1e2e572483c6795d5570c63fafe943e",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
