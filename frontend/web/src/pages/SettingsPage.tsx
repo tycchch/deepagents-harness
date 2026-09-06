@@ -1,3 +1,65 @@
+import { useEffect, useState } from "react";
+import { useHarness } from "../store/session";
+
 export default function SettingsPage() {
-  return <main>Settings</main>;
+  const workspace = useHarness((s) => s.workspace);
+  const config = useHarness((s) => s.config);
+  const connected = useHarness((s) => s.connected);
+  const setWorkspace = useHarness((s) => s.setWorkspace);
+  const refreshConfig = useHarness((s) => s.refreshConfig);
+  const setConfig = useHarness((s) => s.setConfig);
+  const [localWs, setLocalWs] = useState(workspace);
+  const [model, setModel] = useState(String(config.model ?? config.deepseek_model ?? ""));
+  const [sandbox, setSandbox] = useState(Boolean((config.sandbox as { enabled?: boolean } | undefined)?.enabled));
+
+  useEffect(() => {
+    if (connected) void refreshConfig();
+  }, [connected, refreshConfig]);
+
+  useEffect(() => {
+    setLocalWs(workspace);
+    setModel(String(config.model ?? config.deepseek_model ?? ""));
+    setSandbox(Boolean((config.sandbox as { enabled?: boolean } | undefined)?.enabled));
+  }, [workspace, config]);
+
+  return (
+    <>
+      <header>
+        <div>
+          <h1>Settings</h1>
+          <p>workspace 存在本机；模型 / sandbox 走 config/*</p>
+        </div>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            setWorkspace(localWs.trim());
+            if (connected) {
+              void setConfig({
+                model,
+                sandbox: { ...(typeof config.sandbox === "object" ? config.sandbox : {}), enabled: sandbox },
+              });
+            }
+          }}
+        >
+          保存
+        </button>
+      </header>
+      <main>
+        <div className="field">
+          <label>workspace</label>
+          <input value={localWs} onChange={(e) => setLocalWs(e.target.value)} placeholder="E:\workSpace\deepagentsSpace" />
+        </div>
+        <div className="field">
+          <label>model</label>
+          <input value={model} onChange={(e) => setModel(e.target.value)} />
+        </div>
+        <label className="field">
+          <span>sandbox</span>
+          <input type="checkbox" checked={sandbox} onChange={(e) => setSandbox(e.target.checked)} />
+        </label>
+        <p className="hint">密钥只在 backend/.env，不会出现在 config/get。</p>
+      </main>
+    </>
+  );
 }

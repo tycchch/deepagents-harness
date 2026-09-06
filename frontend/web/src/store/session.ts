@@ -1,0 +1,250 @@
+import { create } from "zustand";
+import { getClient, RpcError, wsUrl } from "../lib/rpc";
+import { PROTOCOL_VERSION } from "../protocol/types";
+import type {
+  ApprovalDecision,
+  ApprovalRequestParams,
+  ConfigMap,
+  ItemEvent,
+  ItemType,
+  RpcNotification,
+  SkillInfo,
+  ThreadInfo,
+} from "../protocol/types";
+
+const WORKSPACE_KEY = "harness.workspace";
+
+export type ChatItem = ItemEvent & { pending?: boolean };
+
+type HarnessState = {
+  connected: boolean;
+  connecting: boolean;
+  error: string;
+  workspace: string;
+  thread: ThreadInfo | null;
+  threads: ThreadInfo[];
+  items: ChatItem[];
+  busy: boolean;
+  approval: ApprovalRequestParams | null;
+  skills: SkillInfo[];
+  config: ConfigMap;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  setWorkspace: (path: string) => void;
+  refreshThreads: () => Promise<void>;
+  startThread: (workspace?: string) => Promise<ThreadInfo>;
+  resumeThread: (threadId: string) => Promise<ThreadInfo>;
+  archiveThread: (threadId: string) => Promise<void>;
+  send: (text: string) => Promise<void>;
+  interrupt: () => Promise<void>;
+  resolveApproval: (decision: ApprovalDecision, editedArgs?: Record<string, unknown>) => Promise<void>;
+  refreshSkills: () => Promise<void>;
+  readSkill: (path: string) => Promise<string>;
+  writeSkill: (path: string, content: string) => Promise<void>;
+  refreshConfig: () => Promise<void>;
+  setConfig: (values: ConfigMap) => Promise<void>;
+};
+
+function workspaceOf(): string {
+  const fromShell = window.harness?.cwd;
+  if (fromShell) return fromShell;
+  return localStorage.getItem(WORKSPACE_KEY) || "";
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+type SetState = (
+  partial: Partial<HarnessState> | ((state: HarnessState) => Partial<HarnessState>),
+) => void;
+
+let notesBound = false;
+
+function applyNote(note: RpcNotification, set: SetState): void {
+  const params = asRecord(note.params);
+  if (note.method === "error") {
+    set({ error: String(params.message ?? "server error"), busy: false });
+    return;
+  }
+  if (note.method === "approval/request") {
+    set({ approval: params as ApprovalRequestParams });
+    return;
+  }
+  if (note.method === "turn/completed") {
+    set({ busy: false });
+    return;
+  }
+  if (!note.method.startsWith("item/")) return;
+  const incoming: ChatItem = {
+    item_id: String(params.item_id ?? "item"),
+    type: (params.type as ItemType) || "agent_message",
+    text: (params.text as string | null | undefined) ?? "",
+    tool: (params.tool as string | null | undefined) ?? null,
+    path: (params.path as string | null | undefined) ?? null,
+    pending: note.method !== "item/completed",
+  };
+  setItem(set, incoming, note.method === "item/delta");
+}
+
+function setItem(
+  set: (partial: Partial<HarnessState> | ((s: HarnessState) => Partial<HarnessState>)) => void,
+  incoming: ChatItem,
+  append: boolean,
+): void {
+  set((state) => {
+    const idx = state.items.findIndex((item) => item.item_id === incoming.item_id);
+    if (idx < 0) return { items: [...state.items, incoming] };
+    const current = state.items[idx];
+    const next = [...state.items];
+    next[idx] = {
+      ...current,
+      ...incoming,
+      text: append ? `${current.text ?? ""}${incoming.text ?? ""}` : (incoming.text ?? current.text),
+    };
+    return { items: next };
+  });
+}
+
+export const useHarness = create<HarnessState>((set, get) => ({
+  connected: false,
+  connecting: false,
+  error: "",
+  workspace: workspaceOf(),
+  thread: null,
+  threads: [],
+  items: [],
+  busy: false,
+  approval: null,
+  skills: [],
+  config: {},
+
+  connect: async () => {
+    if (get().connecting || get().connected) return;
+    set({ connecting: true, error: "" });
+    const client = getClient();
+    if (!notesBound) {
+      client.onNotification((note) => applyNote(note, set));
+      notesBound = true;
+    }
+    try {
+      await client.connect(wsUrl());
+      const cwd = get().workspace || "/";
+      await client.request("initialize", {
+        protocol_version: PROTOCOL_VERSION,
+        client: "desktop",
+        cwd,
+      });
+      set({ connected: true, connecting: false });
+      await get().refreshThreads();
+      await get().refreshConfig();
+    } catch (err) {
+      set({
+        connected: false,
+        connecting: false,
+        error: err instanceof RpcError ? err.message : String(err),
+      });
+    }
+  },
+
+  disconnect: async () => {
+    await getClient().close();
+    set({ connected: false, busy: false });
+  },
+
+  setWorkspace: (path: string) => {
+    localStorage.setItem(WORKSPACE_KEY, path);
+    set({ workspace: path });
+  },
+
+  refreshThreads: async () => {
+    const result = asRecord(await getClient().request("thread/list"));
+    set({ threads: (result.threads as ThreadInfo[]) ?? [] });
+  },
+
+  startThread: async (workspace?: string) => {
+    const ws = workspace || get().workspace;
+    if (!ws) throw new RpcError("Set workspace first");
+    const info = (await getClient().request("thread/start", {
+      workspace: ws,
+    })) as ThreadInfo;
+    set({ thread: info, items: [], busy: false, workspace: ws });
+    await get().refreshThreads();
+    return info;
+  },
+
+  resumeThread: async (threadId: string) => {
+    const info = (await getClient().request("thread/resume", {
+      thread_id: threadId,
+    })) as ThreadInfo;
+    set({ thread: info, items: [], busy: false, workspace: info.workspace || get().workspace });
+    return info;
+  },
+
+  archiveThread: async (threadId: string) => {
+    await getClient().request("thread/archive", { thread_id: threadId });
+    if (get().thread?.thread_id === threadId) set({ thread: null, items: [] });
+    await get().refreshThreads();
+  },
+
+  send: async (text: string) => {
+    let thread = get().thread;
+    if (!thread) thread = await get().startThread();
+    set((state) => ({
+      busy: true,
+      error: "",
+      items: [
+        ...state.items,
+        { item_id: `user-${Date.now()}`, type: "user_message", text, pending: false },
+      ],
+    }));
+    try {
+      await getClient().request("turn/start", { thread_id: thread.thread_id, text });
+      await get().refreshThreads();
+    } catch (err) {
+      set({ busy: false, error: err instanceof RpcError ? err.message : String(err) });
+    }
+  },
+
+  interrupt: async () => {
+    const thread = get().thread;
+    if (!thread) return;
+    await getClient().request("turn/interrupt", { thread_id: thread.thread_id });
+  },
+
+  resolveApproval: async (decision, editedArgs) => {
+    const approval = get().approval;
+    if (!approval) return;
+    await getClient().request("approval/resolve", {
+      request_id: approval.request_id,
+      decision,
+      edited_args: editedArgs ?? null,
+    });
+    set({ approval: null });
+  },
+
+  refreshSkills: async () => {
+    const result = asRecord(await getClient().request("skills/list"));
+    set({ skills: (result.skills as SkillInfo[]) ?? [] });
+  },
+
+  readSkill: async (path: string) => {
+    const result = asRecord(await getClient().request("skills/read", { path }));
+    return String(result.content ?? "");
+  },
+
+  writeSkill: async (path: string, content: string) => {
+    await getClient().request("skills/write", { path, content });
+    await get().refreshSkills();
+  },
+
+  refreshConfig: async () => {
+    const result = asRecord(await getClient().request("config/get"));
+    set({ config: (result.config as ConfigMap) ?? {} });
+  },
+
+  setConfig: async (values: ConfigMap) => {
+    const result = asRecord(await getClient().request("config/set", { values }));
+    set({ config: (result.config as ConfigMap) ?? values });
+  },
+}));

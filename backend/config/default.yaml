@@ -1,0 +1,25 @@
+# Local defaults. Secrets stay in .env — never put API keys here.
+model: deepseek-chat
+workspace_root: ""
+skills_root: ""
+memories_root: ""
+memory_enabled: true
+server_transport: ws
+ws_bind: 127.0.0.1
+ws_port: 8765
+hitl: true
+sandbox:
+  enabled: false
+  image: python:3.12-slim
+  network: none
+  workdir: /workspace
+  timeout_s: 60
+  docker_host: ""
+persist:
+  checkpointer: memory
+  store: memory
+  checkpointer_path: ""
+  store_path: ""
+client:
+  workspace: ""
+  ws_url: ws://127.0.0.1:8765

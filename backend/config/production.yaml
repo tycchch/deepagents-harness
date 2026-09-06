@@ -1,0 +1,11 @@
+# Overlay on default.yaml when HARNESS_ENV=production.
+# Secrets still only come from .env.
+hitl: true
+sandbox:
+  enabled: true
+  network: none
+persist:
+  checkpointer: sqlite
+  store: sqlite
+  checkpointer_path: ~/.harness/checkpoints.sqlite
+  store_path: ~/.harness/store.sqlite

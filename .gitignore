@@ -10,3 +10,5 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 .venv/
+笔记.md
+工作日志.md
