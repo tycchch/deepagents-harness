@@ -28,17 +28,29 @@ export default function ChatPage() {
     <>
       <header>
         <div>
-          <h1>Chat</h1>
+          <h1>{thread ? thread.title || "未命名对话" : "新对话"}</h1>
           <p>
             {thread
-              ? `${thread.title || "未命名"} · ${thread.thread_id.slice(0, 8)}`
-              : "新会话 · 发出第一条消息时才创建"}
-            {workspace ? ` · ${workspace}` : ""}
+              ? `${thread.thread_id.slice(0, 8)} · 运行在 ${thread.workspace || workspace || "?"}`
+              : "发出第一条消息时才创建，全程只走 App Server"}
           </p>
+        </div>
+        <div className="header-badges">
+          {workspace ? (
+            <span className="badge brand" title={workspace}>
+              {workspace}
+            </span>
+          ) : (
+            <span className="badge bad">未设置 workspace · 去 Settings 填写</span>
+          )}
         </div>
       </header>
       <main>
-        <MessageList items={items} />
+        <MessageList
+          items={items}
+          canSuggest={connected && Boolean(workspace)}
+          onSuggest={(text) => void send(text)}
+        />
       </main>
       <Composer
         busy={busy}
