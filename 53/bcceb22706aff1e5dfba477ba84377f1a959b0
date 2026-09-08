@@ -1,0 +1,81 @@
+backend/tests/unit/test_rpc.py
+  s_01d9c97511821f::t_e03840e496d578 109-140
+  s_01d9c97511821f::t_45dc248cc8eb22 239-271
+backend/cli/harness_cli/banner.py
+  s_01d9c97511821f::t_b6f10038ac773f 48
+frontend/web/src/protocol/types.ts
+  s_01d9c97511821f::t_349974435d7b99 111-134
+  s_01d9c97511821f::t_2f6d182ff3809b 66
+backend/config/schema.py
+  s_01d9c97511821f::t_db36b5664cf74f 27
+backend/pyproject.toml
+  s_01d9c97511821f::t_d8425550ee539c 25
+backend/agent/factory.py
+  s_01d9c97511821f::t_2a0b2d30b85e6e 12-14,16-25,28,31
+backend/config/providers.py
+  s_01d9c97511821f::t_4491360ea54050 102-104
+  s_01d9c97511821f::t_280482bb128a0d 105-107,112
+  s_01d9c97511821f::t_377102eaf5ef01 225-230
+  s_01d9c97511821f::t_26d6fd0a15a513 1-101,108-111,113-224,231-239
+backend/tests/unit/test_providers.py
+  s_01d9c97511821f::t_0f977e575ff806 1-63
+backend/protocol/methods.py
+  s_01d9c97511821f::t_aca8ba14385915 86-104
+  s_01d9c97511821f::t_c018aa0b965ced 42
+backend/server/rpc.py
+  s_01d9c97511821f::t_807ccc03093458 257-258,262
+  s_01d9c97511821f::t_6f9b05a38759b5 344-353,356-365,367-387
+  s_01d9c97511821f::t_d17151f3422982 102,108,110-113
+  s_01d9c97511821f::t_e6eaac5d15f194 228
+  s_01d9c97511821f::t_ee47f2cde137b9 198-199,203-204,206
+  s_01d9c97511821f::t_0fd4dbebbb2fbf 41-42,46-61,67-68,71-74,77-82
+  s_01d9c97511821f::t_4479d9c7ebce81 366
+  s_01d9c97511821f::t_c961db283f5c0e 7,16-18,388
+  s_01d9c97511821f::t_f2cb5e8b7790ab 191-197,200-201,205
+  s_01d9c97511821f::t_e442279bbdee55 105
+  s_01d9c97511821f::t_4534d0a276a659 239,241,246
+  s_01d9c97511821f::t_76ac7861291fd7 12
+frontend/web/src/pages/SettingsPage.tsx
+  s_01d9c97511821f::t_e7b7ee2b1b6537 69
+  s_01d9c97511821f::t_29771b66f08aaa 3
+  s_01d9c97511821f::t_a4e63da9f5ef6a 74
+backend/tests/unit/test_config.py
+  s_01d9c97511821f::t_db42642cc88e86 78-98
+backend/config/__init__.py
+  s_01d9c97511821f::t_0bcf6a763b92f9 2,9,12
+backend/cli/harness_cli/tui.py
+  s_0277176d6ef0c1::t_d780151b0ef193 22,159-192,325-327
+backend/server/session.py
+  s_0277176d6ef0c1::t_c8a876c3ef5e41 24,33,45,50,65,69-70,74,76
+frontend/web/src/components/Composer.tsx
+  s_0277176d6ef0c1::t_2c7333c16a5818 2,30-32,56-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "53bcceb22706aff1e5dfba477ba84377f1a959b0",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    },
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
