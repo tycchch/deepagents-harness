@@ -794,6 +794,18 @@ a { color: inherit; text-decoration: none; }
 .composer textarea::placeholder { color: var(--faint); }
 .composer textarea:focus-visible { outline: none; }
 .composer textarea:disabled { opacity: 0.55; }
+.model-pick {
+  max-width: 180px;
+  flex: 0 0 auto;
+  align-self: center;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.model-pick:disabled { opacity: 0.45; }
 
 /* 圆形发送 / 中断按钮 */
 .round-btn {
@@ -883,7 +895,7 @@ a { color: inherit; text-decoration: none; }
 .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; max-width: 560px; }
 .field label { font-size: 13px; color: var(--muted); font-weight: 600; }
 .field label > span { font-size: 13px; }
-.field input[type="text"], .field input:not([type]), .field textarea {
+.field input[type="text"], .field input:not([type]), .field input[type="password"], .field textarea, .field select {
   background: var(--bg-2);
   border: 1px solid var(--line-strong);
   border-radius: 10px;
@@ -892,7 +904,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 13.5px;
   transition: border-color 0.13s ease, box-shadow 0.13s ease;
 }
-.field input:focus, .field textarea:focus {
+.field input:focus, .field textarea:focus, .field select:focus {
   outline: none;
   border-color: rgba(122, 142, 255, 0.6);
   box-shadow: 0 0 0 3px var(--ring);
@@ -904,6 +916,27 @@ a { color: inherit; text-decoration: none; }
   accent-color: var(--accent);
 }
 .field .hint { font-size: 12px; }
+.providers { margin: 28px 0 8px; max-width: 760px; }
+.provider-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 20px; }
+.provider-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.provider-card.active { border-color: rgba(122, 142, 255, 0.55); }
+.preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 760px;
+}
+.map-grid .field { max-width: none; }
 
 /* 审批弹窗 */
 .modal-back {

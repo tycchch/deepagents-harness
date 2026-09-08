@@ -6,6 +6,7 @@ import type {
   ApprovalRequestParams,
   ConfigMap,
   ItemEvent,
+  ModelsState,
   ItemType,
   RpcNotification,
   SkillInfo,
@@ -29,6 +30,7 @@ type HarnessState = {
   approval: ApprovalRequestParams | null;
   skills: SkillInfo[];
   config: ConfigMap;
+  models: ModelsState;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   setWorkspace: (path: string) => Promise<void>;
@@ -48,7 +50,13 @@ type HarnessState = {
   writeSkill: (path: string, content: string) => Promise<void>;
   refreshConfig: () => Promise<void>;
   setConfig: (values: ConfigMap) => Promise<void>;
+  refreshModels: () => Promise<void>;
+  setModel: (model: string, providerId?: string) => Promise<void>;
+  upsertProvider: (provider: Record<string, unknown>) => Promise<void>;
+  deleteProvider: (id: string) => Promise<void>;
 };
+
+const EMPTY_MODELS: ModelsState = { active_provider: "", active_model: "", providers: [] };
 
 function workspaceOf(): string {
   const fromShell = window.harness?.cwd;
@@ -142,6 +150,7 @@ export const useHarness = create<HarnessState>((set, get) => ({
   approval: null,
   skills: [],
   config: {},
+  models: EMPTY_MODELS,
 
   connect: async () => {
     if (get().connecting || get().connected) return;
@@ -162,6 +171,7 @@ export const useHarness = create<HarnessState>((set, get) => ({
       set({ connected: true, connecting: false });
       await get().refreshThreads();
       await get().refreshConfig();
+      await get().refreshModels();
       const last = localStorage.getItem(THREAD_KEY);
       if (last && !get().thread) {
         try {
@@ -349,5 +359,73 @@ export const useHarness = create<HarnessState>((set, get) => ({
   setConfig: async (values: ConfigMap) => {
     const result = asRecord(await getClient().request("config/set", { values }));
     set({ config: (result.config as ConfigMap) ?? values });
+  },
+
+  refreshModels: async () => {
+    try {
+      const result = asRecord(await getClient().request("models/list"));
+      set({
+        models: {
+          active_provider: String(result.active_provider ?? ""),
+          active_model: String(result.active_model ?? ""),
+          providers: (result.providers as ModelsState["providers"]) ?? [],
+        },
+      });
+    } catch (err) {
+      set({ error: failure(err, "读取模型") });
+    }
+  },
+
+  setModel: async (model: string, providerId?: string) => {
+    try {
+      const result = asRecord(
+        await getClient().request("models/set", {
+          model,
+          provider_id: providerId || null,
+        }),
+      );
+      set({
+        error: "",
+        models: {
+          active_provider: String(result.active_provider ?? providerId ?? ""),
+          active_model: String(result.active_model ?? model),
+          providers: (result.providers as ModelsState["providers"]) ?? get().models.providers,
+        },
+      });
+    } catch (err) {
+      set({ error: failure(err, "切换模型") });
+    }
+  },
+
+  upsertProvider: async (provider: Record<string, unknown>) => {
+    try {
+      const result = asRecord(await getClient().request("providers/upsert", provider));
+      set({
+        error: "",
+        models: {
+          active_provider: String(result.active_provider ?? get().models.active_provider),
+          active_model: String(result.active_model ?? get().models.active_model),
+          providers: (result.providers as ModelsState["providers"]) ?? get().models.providers,
+        },
+      });
+    } catch (err) {
+      set({ error: failure(err, "保存供应商") });
+    }
+  },
+
+  deleteProvider: async (id: string) => {
+    try {
+      const result = asRecord(await getClient().request("providers/delete", { id }));
+      set({
+        error: "",
+        models: {
+          active_provider: String(result.active_provider ?? ""),
+          active_model: String(result.active_model ?? ""),
+          providers: (result.providers as ModelsState["providers"]) ?? [],
+        },
+      });
+    } catch (err) {
+      set({ error: failure(err, "删除供应商") });
+    }
   },
 }));

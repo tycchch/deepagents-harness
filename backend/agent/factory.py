@@ -9,18 +9,26 @@ from config.schema import HarnessConfig
 
 
 def build_chat_model(cfg: HarnessConfig):
-    if not cfg.deepseek_api_key:
+    key = cfg.deepseek_api_key
+    model = cfg.deepseek_model or cfg.model
+    if not key:
         return cfg.model
+    protocol = (cfg.provider_protocol or "openai").lower()
+    if protocol == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+
+        kwargs: dict = {"model": model, "api_key": key}
+        base = (cfg.deepseek_base_url or "").rstrip("/")
+        if base:
+            kwargs["base_url"] = base
+        return ChatAnthropic(**kwargs)
+
     from langchain_openai import ChatOpenAI
 
-    base = cfg.deepseek_base_url.rstrip("/")
+    base = (cfg.deepseek_base_url or "https://api.openai.com").rstrip("/")
     if not base.endswith("/v1"):
         base = f"{base}/v1"
-    return ChatOpenAI(
-        model=cfg.deepseek_model or cfg.model,
-        api_key=cfg.deepseek_api_key,
-        base_url=base,
-    )
+    return ChatOpenAI(model=model, api_key=key, base_url=base)
 
 
 def create_harness_agent(

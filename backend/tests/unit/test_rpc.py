@@ -106,6 +106,38 @@ def test_thread_list_resume_archive(tmp_path) -> None:
     assert listed.result["threads"][0]["thread_id"] == thread_id
 
 
+def test_cli_and_desktop_threads_are_isolated(tmp_path) -> None:
+    store = ThreadStore(tmp_path / "threads.json")
+    cli = RpcDispatcher(store=store)
+    desk = RpcDispatcher(store=store)
+    cli.handle(_req("initialize", InitializeParams(client="cli", cwd="E:/repo").model_dump(mode="json")))
+    desk.handle(_req("initialize", InitializeParams(client="desktop", cwd="E:/repo").model_dump(mode="json"), id=1))
+
+    cli_thread = parse_message(
+        cli.handle(_req("thread/start", ThreadStartParams(workspace="E:/repo").model_dump(), id=2))[0]
+    ).result
+    desk_thread = parse_message(
+        desk.handle(_req("thread/start", ThreadStartParams(workspace="E:/repo").model_dump(), id=2))[0]
+    ).result
+    assert cli_thread["source"] == "cli"
+    assert desk_thread["source"] == "desktop"
+
+    cli_list = parse_message(cli.handle(_req("thread/list", {}, id=3))[0]).result["threads"]
+    desk_list = parse_message(desk.handle(_req("thread/list", {}, id=3))[0]).result["threads"]
+    assert [item["thread_id"] for item in cli_list] == [cli_thread["thread_id"]]
+    assert [item["thread_id"] for item in desk_list] == [desk_thread["thread_id"]]
+
+    all_sources = parse_message(cli.handle(_req("thread/list", {"include_all_sources": True}, id=4))[0])
+    ids = {item["thread_id"] for item in all_sources.result["threads"]}
+    assert ids == {cli_thread["thread_id"], desk_thread["thread_id"]}
+
+    resumed = parse_message(
+        cli.handle(_req("thread/resume", ThreadResumeParams(thread_id=desk_thread["thread_id"]).model_dump(), id=5))[0]
+    )
+    assert resumed.error is None
+    assert resumed.result["thread_id"] == desk_thread["thread_id"]
+
+
 def test_rename_thread(tmp_path) -> None:
     disp = RpcDispatcher(store=ThreadStore(tmp_path / "threads.json"))
     _init(disp)
@@ -202,6 +234,39 @@ def test_skills_personal_write_only(tmp_path) -> None:
     listed = parse_message(disp.handle(_req("skills/list", {}, id=4))[0])
     names = {s["name"] for s in listed.result["skills"]}
     assert "demo" in names
+
+
+def test_models_list_set_and_upsert(tmp_path) -> None:
+    from config.providers import ProviderStore
+
+    disp = RpcDispatcher(providers=ProviderStore(tmp_path / "providers.json"))
+    _init(disp)
+    empty = parse_message(disp.handle(_req("models/list", {}, id=2))[0])
+    assert empty.result["providers"] == []
+
+    saved = parse_message(
+        disp.handle(
+            _req(
+                "providers/upsert",
+                {
+                    "name": "DeepSeek",
+                    "protocol": "openai",
+                    "base_url": "https://api.deepseek.com",
+                    "api_key": "sk-test",
+                    "models": "deepseek-chat,deepseek-reasoner",
+                    "mapping": {"sonnet": "deepseek-chat", "opus": "deepseek-reasoner"},
+                },
+                id=3,
+            )
+        )[0]
+    )
+    assert saved.result["providers"][0]["api_key"] == "***"
+    assert saved.result["providers"][0]["has_key"] is True
+
+    switched = parse_message(disp.handle(_req("models/set", {"model": "opus"}, id=4))[0])
+    assert switched.result["active_model"] == "deepseek-reasoner"
+    listed = parse_message(disp.handle(_req("models/list", {}, id=5))[0])
+    assert listed.result["active_model"] == "deepseek-reasoner"
 
 
 def test_config_get_set() -> None:

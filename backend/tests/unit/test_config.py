@@ -75,6 +75,27 @@ def test_build_chat_model_uses_openai_compat() -> None:
     assert kwargs["base_url"].rstrip("/").endswith("/v1")
 
 
+def test_build_chat_model_anthropic() -> None:
+    from unittest.mock import MagicMock, patch
+
+    from agent.factory import build_chat_model
+
+    cfg = HarnessConfig(
+        provider_protocol="anthropic",
+        deepseek_api_key="sk-ant",
+        deepseek_base_url="https://api.deepseek.com/anthropic",
+        deepseek_model="deepseek-chat",
+    )
+    fake = MagicMock()
+    with patch("langchain_anthropic.ChatAnthropic", return_value=fake) as ctor:
+        model = build_chat_model(cfg)
+    assert model is fake
+    kwargs = ctor.call_args.kwargs
+    assert kwargs["model"] == "deepseek-chat"
+    assert kwargs["api_key"] == "sk-ant"
+    assert kwargs["base_url"] == "https://api.deepseek.com/anthropic"
+
+
 def test_build_chat_model_without_key_returns_string() -> None:
     from agent.factory import build_chat_model
 

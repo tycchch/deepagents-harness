@@ -39,6 +39,7 @@ class ThreadInfo(BaseModel):
     title: str = ""
     updated_at: str = ""
     archived: bool = False
+    source: str = "desktop"
 
 
 class ThreadResumeParams(BaseModel):
@@ -82,3 +83,22 @@ class SkillsWriteParams(BaseModel):
 
 class ConfigSetParams(BaseModel):
     values: dict = Field(default_factory=dict)
+
+
+class ModelsSetParams(BaseModel):
+    model: str
+    provider_id: str | None = None
+
+
+class ProviderUpsertParams(BaseModel):
+    id: str = ""
+    name: str
+    protocol: str = "openai"
+    base_url: str = ""
+    api_key: str = ""
+    models: list | str = Field(default_factory=list)
+    mapping: dict = Field(default_factory=dict)
+
+
+class ProviderDeleteParams(BaseModel):
+    id: str

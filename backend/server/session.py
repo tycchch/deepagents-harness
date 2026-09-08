@@ -21,6 +21,7 @@ class ThreadRecord(BaseModel):
     updated_at: str = ""
     archived: bool = False
     title_locked: bool = False
+    source: str = "desktop"
 
     def to_info(self) -> ThreadInfo:
         return ThreadInfo(
@@ -29,6 +30,7 @@ class ThreadRecord(BaseModel):
             title=self.title,
             updated_at=self.updated_at,
             archived=self.archived,
+            source=self.source or "desktop",
         )
 
 
@@ -40,11 +42,12 @@ class ThreadStore:
         self._items: dict[str, ThreadRecord] = {}
         self._load()
 
-    def start(self, workspace: str) -> ThreadInfo:
+    def start(self, workspace: str, *, source: str = "desktop") -> ThreadInfo:
         record = ThreadRecord(
             thread_id=str(uuid4()),
             workspace=normalize_workspace(workspace),
             updated_at=_now(),
+            source=source or "desktop",
         )
         self._items[record.thread_id] = record
         self._save()
@@ -59,17 +62,18 @@ class ThreadStore:
     def resume(self, thread_id: str) -> ThreadInfo | None:
         return self.get(thread_id)
 
-    def list(self, *, include_archived: bool = False) -> list[ThreadInfo]:
+    def list(self, *, include_archived: bool = False, source: str | None = None) -> list[ThreadInfo]:
         items = [
             item.to_info()
             for item in self._items.values()
-            if include_archived or not item.archived
+            if (include_archived or not item.archived)
+            and (source is None or (item.source or "desktop") == source)
         ]
         return sorted(items, key=lambda item: item.updated_at, reverse=True)
 
-    def latest_for_workspace(self, workspace: str) -> ThreadInfo | None:
+    def latest_for_workspace(self, workspace: str, *, source: str | None = None) -> ThreadInfo | None:
         target = normalize_workspace(workspace)
-        for item in self.list():
+        for item in self.list(source=source):
             try:
                 if normalize_workspace(item.workspace) == target:
                     return item

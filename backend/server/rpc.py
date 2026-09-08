@@ -4,13 +4,18 @@ import asyncio
 from collections.abc import AsyncIterator
 from pathlib import Path
 
+from config.providers import ProviderStore
 from config.schema import HarnessConfig
 from protocol.frame import RpcError, RpcNotification, RpcRequest, RpcResponse, dumps_message, parse_message
 from protocol.methods import (
     ApprovalResolveParams,
+    ClientType,
     ConfigSetParams,
     InitializeParams,
     InitializeResult,
+    ModelsSetParams,
+    ProviderDeleteParams,
+    ProviderUpsertParams,
     SkillsWriteParams,
     ThreadRenameParams,
     ThreadResumeParams,
@@ -33,7 +38,25 @@ from server.stream import (
 # One agent per workspace for the whole process: each connection sharing the same
 # checkpointer is what makes history survive page reloads (and avoids leaking sqlite conns).
 _AGENTS: dict[str, object] = {}
+_AGENT_SIG: dict[str, str] = {}
+_PERSIST: dict[str, tuple[object, object]] = {}
 _AGENT_LOCK = asyncio.Lock()
+
+
+def _model_sig(cfg: HarnessConfig) -> str:
+    return "|".join(
+        [
+            cfg.provider_protocol,
+            cfg.deepseek_base_url,
+            cfg.deepseek_model or cfg.model,
+            "1" if cfg.deepseek_api_key else "0",
+        ]
+    )
+
+
+def invalidate_agents() -> None:
+    _AGENTS.clear()
+    _AGENT_SIG.clear()
 
 
 async def _shared_agent(cfg: HarnessConfig, workspace: str):
@@ -41,14 +64,22 @@ async def _shared_agent(cfg: HarnessConfig, workspace: str):
     from config.persist import build_checkpointer_async, build_store_async
 
     key = normalize_workspace(workspace or cfg.workspace_root)
+    updated = cfg.model_copy(update={"workspace_root": key})
+    sig = _model_sig(updated)
     async with _AGENT_LOCK:
         agent = _AGENTS.get(key)
-        if agent is None:
-            updated = cfg.model_copy(update={"workspace_root": key})
+        if agent is not None and _AGENT_SIG.get(key) == sig:
+            return agent
+        persist = _PERSIST.get(key)
+        if persist is None:
             checkpointer = await build_checkpointer_async(updated)
             store = await build_store_async(updated)
-            agent = create_harness_agent(updated, store=store, checkpointer=checkpointer)
-            _AGENTS[key] = agent
+            _PERSIST[key] = (checkpointer, store)
+        else:
+            checkpointer, store = persist
+        agent = create_harness_agent(updated, store=store, checkpointer=checkpointer)
+        _AGENTS[key] = agent
+        _AGENT_SIG[key] = sig
         return agent
 
 
@@ -68,12 +99,18 @@ class RpcDispatcher:
         runner: TurnRunner | None = None,
         agent=None,
         cfg: HarnessConfig | None = None,
+        providers: ProviderStore | None = None,
     ) -> None:
         self._initialized = False
+        self._client = ClientType.DESKTOP
         self._threads = store or ThreadStore()
         self._skills_root = Path(skills_root) if skills_root else Path.home() / ".harness" / "skills"
+        self._providers = providers
         self._cfg = cfg
-        self._config = (cfg or HarnessConfig()).model_dump(mode="json")
+        if cfg is not None:
+            self._providers_store().seed_from_cfg(cfg)
+            self._cfg = self._providers_store().apply(cfg)
+        self._config = (self._cfg or HarnessConfig()).model_dump(mode="json")
         self._agent = agent
         self._approvals = ApprovalHub()
         self._streamer = FakeTurnStreamer()
@@ -151,8 +188,22 @@ class RpcDispatcher:
         items = await thread_history(self._agent, params.thread_id)
         return {"items": [item.model_dump(mode="json") for item in items]}
 
+    def _providers_store(self) -> ProviderStore:
+        if self._providers is None:
+            self._providers = ProviderStore()
+        return self._providers
+
+    def _apply_providers(self) -> None:
+        if self._cfg is None:
+            return
+        self._cfg = self._providers_store().apply(self._cfg)
+        self._config = self._cfg.model_dump(mode="json")
+
     async def _ensure_agent(self, workspace: str) -> None:
-        if self._cfg is None or not self._cfg.deepseek_api_key:
+        if self._cfg is None:
+            return
+        self._apply_providers()
+        if not self._cfg.deepseek_api_key:
             return
         agent = await _shared_agent(self._cfg, workspace)
         if agent is self._agent:
@@ -174,6 +225,7 @@ class RpcDispatcher:
         return params.thread_id, params.text
 
     def _public_config(self) -> dict:
+        self._apply_providers()
         data = dict(self._config)
         if data.get("deepseek_api_key"):
             data["deepseek_api_key"] = "***"
@@ -184,13 +236,14 @@ class RpcDispatcher:
             raise RpcDispatchError("Not initialized")
 
         if request.method == "initialize":
-            InitializeParams.model_validate(request.params)
+            params = InitializeParams.model_validate(request.params)
             self._initialized = True
+            self._client = params.client
             return InitializeResult().model_dump(mode="json"), []
 
         if request.method == "thread/start":
             params = ThreadStartParams.model_validate(request.params)
-            return self._threads.start(params.workspace).model_dump(mode="json"), []
+            return self._threads.start(params.workspace, source=self._client.value).model_dump(mode="json"), []
 
         if request.method == "thread/resume":
             params = ThreadResumeParams.model_validate(request.params)
@@ -201,10 +254,12 @@ class RpcDispatcher:
 
         if request.method == "thread/list":
             include_archived = bool(request.params.get("include_archived"))
+            include_all = bool(request.params.get("include_all_sources"))
+            source = None if include_all else str(request.params.get("source") or self._client.value)
             return {
                 "threads": [
                     item.model_dump(mode="json")
-                    for item in self._threads.list(include_archived=include_archived)
+                    for item in self._threads.list(include_archived=include_archived, source=source)
                 ]
             }, []
 
@@ -286,7 +341,50 @@ class RpcDispatcher:
         if request.method == "config/set":
             params = ConfigSetParams.model_validate(request.params)
             self._config.update(params.values)
+            if self._cfg is not None:
+                self._cfg = self._cfg.model_copy(update=params.values)
+            model = params.values.get("model")
+            if isinstance(model, str) and model.strip():
+                try:
+                    self._providers_store().select(model)
+                    invalidate_agents()
+                    self._agent = None
+                except KeyError:
+                    pass
             return {"config": self._public_config()}, []
+
+        if request.method == "models/list":
+            if self._cfg is not None:
+                self._providers_store().seed_from_cfg(self._cfg)
+            return self._providers_store().public(), []
+
+        if request.method == "models/set":
+            params = ModelsSetParams.model_validate(request.params)
+            try:
+                self._providers_store().select(params.model, params.provider_id)
+            except KeyError as exc:
+                raise RpcDispatchError(exc.args[0] if exc.args else "Unknown model") from exc
+            self._apply_providers()
+            invalidate_agents()
+            self._agent = None
+            return self._providers_store().public(), []
+
+        if request.method == "providers/upsert":
+            params = ProviderUpsertParams.model_validate(request.params)
+            profile = self._providers_store().upsert(params.model_dump(mode="json"))
+            self._apply_providers()
+            invalidate_agents()
+            self._agent = None
+            return {"provider": profile.public(), **self._providers_store().public()}, []
+
+        if request.method == "providers/delete":
+            params = ProviderDeleteParams.model_validate(request.params)
+            if not self._providers_store().delete(params.id):
+                raise RpcDispatchError("Unknown provider")
+            self._apply_providers()
+            invalidate_agents()
+            self._agent = None
+            return self._providers_store().public(), []
 
         raise RpcDispatchError(f"Unknown method: {request.method}", code=-32601)
 

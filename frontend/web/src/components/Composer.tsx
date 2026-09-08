@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useHarness } from "../store/session";
 
 type Props = {
   busy: boolean;
@@ -26,6 +27,9 @@ function StopIcon() {
 
 export default function Composer({ busy, disabled, onSend, onInterrupt }: Props) {
   const [text, setText] = useState("");
+  const models = useHarness((s) => s.models);
+  const setModel = useHarness((s) => s.setModel);
+  const current = `${models.active_provider}::${models.active_model}`;
 
   function submit() {
     const next = text.trim();
@@ -49,6 +53,35 @@ export default function Composer({ busy, disabled, onSend, onInterrupt }: Props)
             }
           }}
         />
+        {models.providers.length ? (
+          <select
+            className="model-pick"
+            disabled={disabled || busy}
+            value={current}
+            title="切换模型，等同 CLI /model"
+            onChange={(e) => {
+              const [providerId, model] = e.target.value.split("::");
+              if (model) void setModel(model, providerId);
+            }}
+          >
+            {models.providers.map((provider) => (
+              <optgroup key={provider.id} label={`${provider.name} · ${provider.protocol}`}>
+                {(provider.models || []).map((item) => (
+                  <option key={`${provider.id}-${item.id}`} value={`${provider.id}::${item.id}`}>
+                    {item.label || item.id}
+                  </option>
+                ))}
+                {Object.entries(provider.mapping || {}).map(([alias, id]) =>
+                  alias === id ? null : (
+                    <option key={`${provider.id}-${alias}`} value={`${provider.id}::${alias}`}>
+                      {alias} → {id}
+                    </option>
+                  ),
+                )}
+              </optgroup>
+            ))}
+          </select>
+        ) : null}
         {busy ? (
           <button
             type="button"

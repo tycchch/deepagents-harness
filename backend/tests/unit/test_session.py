@@ -64,6 +64,16 @@ def test_delete_removes_record(tmp_path) -> None:
     assert ThreadStore(path).get(info.thread_id) is None
 
 
+def test_list_filters_by_source(tmp_path) -> None:
+    store = ThreadStore(tmp_path / "threads.json")
+    web = store.start("E:/repo", source="desktop")
+    cli = store.start("E:/repo", source="cli")
+    assert {item.thread_id for item in store.list(source="cli")} == {cli.thread_id}
+    assert {item.thread_id for item in store.list(source="desktop")} == {web.thread_id}
+    assert {item.thread_id for item in store.list()} == {web.thread_id, cli.thread_id}
+    assert store.latest_for_workspace("E:/repo", source="cli").thread_id == cli.thread_id
+
+
 def test_persist_reload(tmp_path) -> None:
     path = tmp_path / "threads.json"
     first = ThreadStore(path)

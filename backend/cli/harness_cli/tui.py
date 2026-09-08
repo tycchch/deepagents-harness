@@ -19,6 +19,7 @@ from protocol.methods import (
 from rich.console import Console
 from rich.rule import Rule
 
+from config.providers import parse_model_spec
 from harness_cli.banner import render_banner
 from harness_cli.client import HarnessClient, HarnessRpcError
 
@@ -155,6 +156,40 @@ def _ask_approval(console: Console, params: dict, *, auto_approve: bool) -> dict
     ).model_dump(mode="json")
 
 
+async def _handle_model_cmd(console: Console, client: HarnessClient, text: str) -> None:
+    spec = text.split(maxsplit=1)
+    try:
+        listed, _ = await client.request("models/list", {})
+    except HarnessRpcError as exc:
+        console.print(f"[red]model[/] {exc.message}")
+        return
+    providers = listed.get("providers") or []
+    if len(spec) < 2:
+        current = f"{listed.get('active_provider') or '-'} / {listed.get('active_model') or '-'}"
+        console.print(f"[dim]current[/] {current}")
+        if not providers:
+            console.print("[dim]no providers. add one in Settings.[/]")
+            return
+        for item in providers:
+            mark = "*" if item.get("id") == listed.get("active_provider") else " "
+            aliases = ", ".join(f"{k}={v}" for k, v in (item.get("mapping") or {}).items())
+            models = ", ".join(m.get("id") or "" for m in (item.get("models") or []))
+            extra = f"  [dim]{aliases}[/]" if aliases else ""
+            console.print(f" {mark} [bold]{item.get('name')}[/] ({item.get('protocol')}) {models}{extra}")
+        console.print("[dim]/model <alias|id>   /model <provider>/<id>[/]")
+        return
+    provider_id, model = parse_model_spec(spec[1])
+    try:
+        result, _ = await client.request(
+            "models/set",
+            {"model": model, "provider_id": provider_id},
+        )
+    except HarnessRpcError as exc:
+        console.print(f"[red]model[/] {exc.message}")
+        return
+    console.print(f"[green]model[/] {result.get('active_provider')} / {result.get('active_model')}")
+
+
 def _same_workspace(left: str, right: str) -> bool:
     try:
         return Path(left).expanduser().resolve() == Path(right).expanduser().resolve()
@@ -286,6 +321,9 @@ async def run_session(
                     "turn/interrupt",
                     TurnInterruptParams(thread_id=tid).model_dump(mode="json"),
                 )
+                continue
+            if text == "/model" or text.startswith("/model ") or text.startswith(":model"):
+                await _handle_model_cmd(console, client, text)
                 continue
             await _run_turn(text)
     finally:

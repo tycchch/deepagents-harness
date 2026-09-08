@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import ProviderSettings from "../components/ProviderSettings";
 import { useHarness } from "../store/session";
 
 export default function SettingsPage() {
@@ -12,7 +13,6 @@ export default function SettingsPage() {
   const refreshConfig = useHarness((s) => s.refreshConfig);
   const setConfig = useHarness((s) => s.setConfig);
   const [localWs, setLocalWs] = useState(workspace);
-  const [model, setModel] = useState(String(config.model ?? config.deepseek_model ?? ""));
   const [sandbox, setSandbox] = useState(Boolean((config.sandbox as { enabled?: boolean } | undefined)?.enabled));
 
   useEffect(() => {
@@ -21,7 +21,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setLocalWs(workspace);
-    setModel(String(config.model ?? config.deepseek_model ?? ""));
     setSandbox(Boolean((config.sandbox as { enabled?: boolean } | undefined)?.enabled));
   }, [workspace, config]);
 
@@ -50,7 +49,6 @@ export default function SettingsPage() {
             void setWorkspace(localWs.trim());
             if (connected) {
               void setConfig({
-                model,
                 sandbox: { ...(typeof config.sandbox === "object" ? config.sandbox : {}), enabled: sandbox },
               });
             }
@@ -68,15 +66,12 @@ export default function SettingsPage() {
             保存后立刻套到当前会话。智能体请用 ls /workspace、读 /workspace/foo.py，不要传 E:\ 这种本机路径。
           </p>
         </div>
-        <div className="field">
-          <label>model</label>
-          <input value={model} onChange={(e) => setModel(e.target.value)} />
-        </div>
+        <ProviderSettings />
         <label className="field">
           <span>sandbox</span>
           <input type="checkbox" checked={sandbox} onChange={(e) => setSandbox(e.target.checked)} />
         </label>
-        <p className="hint">密钥只在 backend/.env，不会出现在 config/get。</p>
+        <p className="hint">旧的 DEEPSEEK_* 仍可写在 backend/.env，首次启动会自动生成一条 DeepSeek 供应商。</p>
       </main>
     </>
   );

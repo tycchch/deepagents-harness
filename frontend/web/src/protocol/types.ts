@@ -63,6 +63,7 @@ export type ThreadInfo = {
   title: string;
   updated_at: string;
   archived?: boolean;
+  source?: string;
 };
 
 export type ThreadResumeParams = {
@@ -107,3 +108,27 @@ export type ApprovalResolveParams = {
 };
 
 export type ConfigMap = Record<string, unknown>;
+
+export type ProviderProtocol = "anthropic" | "openai";
+
+export type ModelItem = {
+  id: string;
+  label?: string;
+};
+
+export type ProviderInfo = {
+  id: string;
+  name: string;
+  protocol: ProviderProtocol | string;
+  base_url: string;
+  api_key?: string;
+  has_key?: boolean;
+  models: ModelItem[];
+  mapping: Record<string, string>;
+};
+
+export type ModelsState = {
+  active_provider: string;
+  active_model: string;
+  providers: ProviderInfo[];
+};
