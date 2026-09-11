@@ -75,7 +75,7 @@ def ready_lines(host: str, port: int, cfg: HarnessConfig | None = None) -> list[
     model = cfg.deepseek_model or cfg.model
     key = "ok" if cfg.deepseek_api_key else "missing（.env 里填 DEEPSEEK_API_KEY）"
     return [
-        "harness App Server ready",
+        "harness App Server ready 启动成功！",
         f"  listen    ws://{host}:{port}",
         f"  model     {model}  key={key}",
         "  CLI       harness   |  harness ask \"你好\"",

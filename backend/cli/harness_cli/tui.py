@@ -23,6 +23,23 @@ from config.providers import parse_model_spec
 from harness_cli.banner import render_banner
 from harness_cli.client import HarnessClient, HarnessRpcError
 
+# Session slash commands. Add a row here, then handle it in run_session().
+COMMANDS: list[tuple[str, str]] = [
+    ("/help", "列出全部命令"),
+    ("/quit", "退出 TUI（:q / /exit 同义）"),
+    ("/new", "开一条新的 CLI 会话"),
+    ("/interrupt", "中断当前 turn"),
+    ("/model", "列出供应商与模型"),
+    ("/model <alias|id>", "按别名或模型 id 切换，如 /model sonnet"),
+    ("/model <provider>/<id>", "指定供应商切换，如 /model deepseek/opus"),
+]
+
+
+def print_help(console: Console) -> None:
+    console.print("[bold]commands[/]")
+    for name, hint in COMMANDS:
+        console.print(f"  [bold]{name:<28}[/][dim]{hint}[/]")
+
 
 def _divider(console: Console, title: str = "") -> None:
     console.print(Rule(title, style="dim") if title else Rule(style="dim"))
@@ -229,7 +246,7 @@ async def _open_thread(
     )
     return info, False
 
-
+# TUI 会话入口
 async def run_session(
     workspace: str,
     *,
@@ -264,6 +281,7 @@ async def run_session(
             if resumed:
                 await _print_history(console, client, tid)
 
+        # 发送请求，等待服务端响应，收到响应后渲染到控制台
         async def _run_turn(text: str) -> None:
             _divider(console)
             view = TurnView(console)
@@ -305,6 +323,9 @@ async def run_session(
                 console.print()
                 return
             if not text:
+                continue
+            if text in {"/help", ":help", "/?"}:
+                print_help(console)
                 continue
             if text in {":q", "/quit", "/exit"}:
                 return

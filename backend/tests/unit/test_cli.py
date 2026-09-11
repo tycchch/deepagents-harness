@@ -70,6 +70,15 @@ def test_same_workspace_normalizes() -> None:
     assert _same_workspace(str(root), str(root / "."))
 
 
+def test_help_lists_session_commands() -> None:
+    from harness_cli.tui import COMMANDS
+
+    names = [item[0] for item in COMMANDS]
+    assert "/help" in names
+    assert "/quit" in names
+    assert "/model" in names
+
+
 def test_client_builds_request_line() -> None:
     from harness_cli.client import next_request
 

@@ -45,7 +45,7 @@ def render_banner(
     meta.add_row("server", f"ws://{host}:{port}")
     meta.add_row("thread", f"{thread_id}  [{'resume' if resumed else 'new'}]")
     hints = Text.from_markup(
-        "[dim]type a task    [/][bold]/quit[/][dim]    [/][bold]/new[/][dim]    [/][bold]/model[/][dim] switch    [/][bold]/interrupt[/]"
+        "[dim]type a task    [/][bold]/help[/][dim] commands    [/][bold]/quit[/][dim]    [/][bold]/new[/][dim]    [/][bold]/model[/]"
     )
     body = Group(
         Align.center(mark),
