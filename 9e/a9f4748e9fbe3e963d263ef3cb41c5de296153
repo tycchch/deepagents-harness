@@ -1,0 +1,39 @@
+backend/cli/harness_cli/banner.py
+  s_01d9c97511821f::t_31d21ac1fe8fbb 48
+backend/server/app.py
+  h_85327ed1938640 78
+backend/tests/unit/test_cli.py
+  s_01d9c97511821f::t_0217121a039ed5 73-81
+backend/cli/harness_cli/tui.py
+  h_85327ed1938640 26-41,249,284,327-328
+  s_0277176d6ef0c1::t_befbdb66b5a19c 42,329
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9ea9f4748e9fbe3e963d263ef3cb41c5de296153",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    },
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
