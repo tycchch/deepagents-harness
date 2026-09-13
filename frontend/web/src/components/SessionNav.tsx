@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronRight, Pencil, Plus } from "lucide-react";
 import type { ThreadInfo } from "../protocol/types";
 import { useHarness } from "../store/session";
 
@@ -37,9 +38,22 @@ export default function SessionNav() {
   return (
     <section className="sessions-nav">
       <div className="head">
-        <button type="button" className="toggle" onClick={() => setOpen(!open)}>
-          <span className={`caret${open ? " open" : ""}`}>▸</span>
-          Sessions
+        <button
+          type="button"
+          className="toggle"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          title={open ? "收起会话列表" : "展开会话列表"}
+        >
+          <ChevronRight size={14} className={`caret${open ? " open" : ""}`} aria-hidden />
+          <span className="toggle-text">
+            <span className="toggle-title">会话</span>
+            {!open ? (
+              <span className="collapsed-summary">
+                {current ? label(current) : active[0] ? label(active[0]) : "暂无会话"}
+              </span>
+            ) : null}
+          </span>
           <span className="count">{active.length}</span>
         </button>
         <button
@@ -52,7 +66,7 @@ export default function SessionNav() {
             navigate("/chat");
           }}
         >
-          ＋
+          <Plus size={15} aria-hidden />
         </button>
       </div>
       {open ? (
@@ -100,7 +114,7 @@ export default function SessionNav() {
                     setEditing(item.thread_id);
                   }}
                 >
-                  ✎
+                  <Pencil size={13} aria-hidden />
                 </button>
               </div>
             );

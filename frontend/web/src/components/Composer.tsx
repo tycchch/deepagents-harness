@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Send, Square } from "lucide-react";
 import { useHarness } from "../store/session";
 
 type Props = {
@@ -7,23 +8,6 @@ type Props = {
   onSend: (text: string) => void;
   onInterrupt: () => void;
 };
-
-function SendIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 19V5" />
-      <path d="M5 12l7-7 7 7" />
-    </svg>
-  );
-}
-
-function StopIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <rect x="5" y="5" width="14" height="14" rx="2.5" />
-    </svg>
-  );
-}
 
 export default function Composer({ busy, disabled, onSend, onInterrupt }: Props) {
   const [text, setText] = useState("");
@@ -44,7 +28,7 @@ export default function Composer({ busy, disabled, onSend, onInterrupt }: Props)
         <textarea
           value={text}
           disabled={disabled}
-          placeholder={disabled ? "先在 Settings 填写 workspace" : "描述任务，或直接提问…"}
+          placeholder={disabled ? "先在设置中填写工作目录" : "描述任务，或直接提问…"}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -90,7 +74,7 @@ export default function Composer({ busy, disabled, onSend, onInterrupt }: Props)
             aria-label="中断"
             onClick={onInterrupt}
           >
-            <StopIcon />
+            <Square size="15" aria-hidden />
           </button>
         ) : (
           <button
@@ -101,7 +85,7 @@ export default function Composer({ busy, disabled, onSend, onInterrupt }: Props)
             aria-label="发送"
             onClick={submit}
           >
-            <SendIcon />
+            <Send size={17} aria-hidden />
           </button>
         )}
       </div>

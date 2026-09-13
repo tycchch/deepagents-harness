@@ -6,8 +6,21 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Backend = Join-Path $Root "backend"
 
+$CondaPython = $null
+try {
+    $CondaPython = (& conda run -n deepagents python -c "import sys; print(sys.executable)") |
+        Where-Object { $_ } |
+        Select-Object -First 1
+    if ($LASTEXITCODE -ne 0) {
+        $CondaPython = $null
+    }
+} catch {
+    $CondaPython = $null
+}
+
 $Candidates = @(
-    (Join-Path $env:CONDA_PREFIX "python.exe"),
+    $CondaPython,
+    "D:\software\anaconda3\envs\deepagents\python.exe",
     "D:\miniconda3\envs\deepagents\python.exe",
     (Join-Path $env:USERPROFILE "miniconda3\envs\deepagents\python.exe"),
     (Join-Path $env:USERPROFILE "anaconda3\envs\deepagents\python.exe")

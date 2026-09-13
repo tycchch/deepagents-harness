@@ -28,7 +28,7 @@ export default function SettingsPage() {
     <>
       <header>
         <div>
-          <h1>Settings</h1>
+          <h1>设置</h1>
           <p>workspace 是整棵项目目录。智能体工具只能走虚拟路径 /workspace/，对应下面填的本机路径。</p>
         </div>
         <div className="actions" style={{ marginTop: 0 }}>
@@ -58,20 +58,32 @@ export default function SettingsPage() {
         </button>
         </div>
       </header>
-      <main>
-        <div className="field">
-          <label>workspace（整目录，不是单个文件）</label>
-          <input value={localWs} onChange={(e) => setLocalWs(e.target.value)} placeholder="E:\workSpace\deepagentsSpace" />
-          <p className="hint">
-            保存后立刻套到当前会话。智能体请用 ls /workspace、读 /workspace/foo.py，不要传 E:\ 这种本机路径。
-          </p>
+      <main className="settings-main">
+        <div className="settings-content">
+          <section className="settings-panel">
+            <h2 className="section-title">工作环境</h2>
+            <div className="settings-grid">
+              <div className="field">
+                <label htmlFor="workspace">工作目录 workspace（整目录，不是单个文件）</label>
+                <input
+                  id="workspace"
+                  value={localWs}
+                  onChange={(e) => setLocalWs(e.target.value)}
+                  placeholder="E:\workSpace\deepagentsSpace"
+                />
+              </div>
+              <label className="field switch-field">
+                <span>沙箱 sandbox</span>
+                <input type="checkbox" checked={sandbox} onChange={(e) => setSandbox(e.target.checked)} />
+              </label>
+            </div>
+            <p className="hint">
+              保存后立刻套到当前会话。智能体请用 ls /workspace、读 /workspace/foo.py，不要传 E:\ 这种本机路径。
+            </p>
+          </section>
+          <ProviderSettings />
+          <p className="hint">旧的 DEEPSEEK_* 仍可写在 backend/.env，首次启动会自动生成一条 DeepSeek 供应商。</p>
         </div>
-        <ProviderSettings />
-        <label className="field">
-          <span>sandbox</span>
-          <input type="checkbox" checked={sandbox} onChange={(e) => setSandbox(e.target.checked)} />
-        </label>
-        <p className="hint">旧的 DEEPSEEK_* 仍可写在 backend/.env，首次启动会自动生成一条 DeepSeek 供应商。</p>
       </main>
     </>
   );

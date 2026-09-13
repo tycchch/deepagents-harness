@@ -20,8 +20,8 @@ export default function SkillsPage() {
     <>
       <header>
         <div>
-          <h1>Skills</h1>
-          <p>公共只读；个人可写 /skills/personal/**</p>
+          <h1>技能</h1>
+          <p>公共技能只读；个人技能可编辑，保存在 /skills/personal/**。</p>
         </div>
         {editable ? (
           <button type="button" className="btn" onClick={() => void writeSkill(path, content)}>
@@ -42,7 +42,7 @@ export default function SkillsPage() {
               }}
             >
               <span>
-                {skill.name} · {skill.scope}
+              {skill.name} · {skill.scope === "personal" ? "个人" : "公共"}
               </span>
               <span className="hint">{skill.path}</span>
             </button>
@@ -59,7 +59,7 @@ export default function SkillsPage() {
             />
           </div>
         ) : (
-          <p className="hint">点一条 skill 查看 SKILL.md</p>
+          <p className="hint">点一条技能查看 SKILL.md 内容。</p>
         )}
       </main>
     </>

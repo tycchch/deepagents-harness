@@ -12,6 +12,7 @@ export default function ChatPage() {
   const items = useHarness((s) => s.items);
   const busy = useHarness((s) => s.busy);
   const workspace = useHarness((s) => s.workspace);
+  const activeAgent = useHarness((s) => s.agents.find((item) => item.id === s.activeAgentId));
   const connected = useHarness((s) => s.connected);
   const approval = useHarness((s) => s.approval);
   const resumeThread = useHarness((s) => s.resumeThread);
@@ -32,16 +33,21 @@ export default function ChatPage() {
           <p>
             {thread
               ? `${thread.thread_id.slice(0, 8)} · 运行在 ${thread.workspace || workspace || "?"}`
-              : "发出第一条消息时才创建，全程只走 App Server"}
+              : "发出第一条消息时才创建，全程只走本地应用服务"}
           </p>
         </div>
         <div className="header-badges">
+          {activeAgent ? (
+            <span className="badge brand" title={activeAgent.prompt}>
+              智能体 · {activeAgent.name}
+            </span>
+          ) : null}
           {workspace ? (
             <span className="badge brand" title={workspace}>
               {workspace}
             </span>
           ) : (
-            <span className="badge bad">未设置 workspace · 去 Settings 填写</span>
+            <span className="badge bad">未设置工作目录 · 去设置填写</span>
           )}
         </div>
       </header>

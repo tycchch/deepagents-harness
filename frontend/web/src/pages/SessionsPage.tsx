@@ -110,7 +110,7 @@ export default function SessionsPage() {
     <>
       <header>
         <div>
-          <h1>Sessions</h1>
+          <h1>会话</h1>
           <p>归档 = 从进行中藏起来，记录还在，随时恢复；删除 = 元数据和对话记录一起清掉，不可撤销。</p>
         </div>
         <button
@@ -126,7 +126,7 @@ export default function SessionsPage() {
         </button>
       </header>
       <main className="list">
-        {!connected ? <p className="hint">未连接 App Server。</p> : null}
+        {!connected ? <p className="hint">未连接应用服务。</p> : null}
         <h2 className="section-title">进行中 · {active.length}</h2>
         {!active.length ? <p className="hint">没有进行中的会话。用过 CLI 的会列在这里（需同一份 server）。</p> : null}
         {active.map((item) => (

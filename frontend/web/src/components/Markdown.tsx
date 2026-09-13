@@ -1,9 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 
 type Segment = { kind: "text" | "code"; lang: string; body: string };
 
 const FENCE = /```([^\n`]*)\n?([\s\S]*?)(?:```|$)/g;
-const INLINE_CODE = /`([^`\n]+)`/g;
 
 function splitMarkdown(source: string): Segment[] {
   const out: Segment[] = [];
@@ -48,19 +49,14 @@ function CodeBlock({ lang, body }: { lang: string; body: string }) {
   );
 }
 
-function InlineText({ body }: { body: string }) {
-  const nodes: ReactNode[] = [];
-  let last = 0;
-  INLINE_CODE.lastIndex = 0;
-  let match = INLINE_CODE.exec(body);
-  while (match) {
-    if (match.index > last) nodes.push(body.slice(last, match.index));
-    nodes.push(<code key={`${match.index}-code`}>{match[1]}</code>);
-    last = INLINE_CODE.lastIndex;
-    match = INLINE_CODE.exec(body);
-  }
-  if (last < body.length) nodes.push(body.slice(last));
-  return <p className="prose">{nodes}</p>;
+function MarkdownText({ body }: { body: string }) {
+  const html = marked.parse(body, { gfm: true, breaks: true, async: false }) as string;
+  const safe = DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ["style"],
+    FORBID_ATTR: ["style"],
+  });
+  return <div className="prose" dangerouslySetInnerHTML={{ __html: safe }} />;
 }
 
 export default function Markdown({ text }: { text: string }) {
@@ -71,7 +67,7 @@ export default function Markdown({ text }: { text: string }) {
         segment.kind === "code" ? (
           <CodeBlock key={index} lang={segment.lang} body={segment.body} />
         ) : segment.body.trim() ? (
-          <InlineText key={index} body={segment.body.replace(/^\n+|\n+$/g, "")} />
+          <MarkdownText key={index} body={segment.body.replace(/^\n+|\n+$/g, "")} />
         ) : null,
       )}
     </>

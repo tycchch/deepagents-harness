@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { PenLine, Search, Sparkles } from "lucide-react";
 import type { ChatItem } from "../store/session";
 import Markdown from "./Markdown";
 import ThoughtProcess from "./ThoughtProcess";
@@ -15,33 +16,10 @@ const SUGGESTIONS = [
   { icon: "pencil", label: "列出值得改进的地方" },
 ];
 
-function SparkIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
-    </svg>
-  );
-}
-function LensIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="11" cy="11" r="7" />
-      <line x1="21" y1="21" x2="16.5" y2="16.5" />
-    </svg>
-  );
-}
-function PencilIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-    </svg>
-  );
-}
-
 function suggestIcon(icon: string) {
-  if (icon === "spark") return <SparkIcon />;
-  if (icon === "pencil") return <PencilIcon />;
-  return <LensIcon />;
+  if (icon === "spark") return <Sparkles size={14} aria-hidden />;
+  if (icon === "pencil") return <PenLine size={14} aria-hidden />;
+  return <Search size={14} aria-hidden />;
 }
 
 function isProcess(item: ChatItem): boolean {
@@ -121,7 +99,7 @@ export default function MessageList({ items, canSuggest = false, onSuggest }: Pr
             </button>
           ))}
         </div>
-        <p className="footnote">本地运行 · 数据只经过你的 App Server · Enter 发送，Shift+Enter 换行</p>
+        <p className="footnote">本地运行 · 数据只经过你的应用服务 · Enter 发送，Shift+Enter 换行</p>
       </div>
     );
   }

@@ -100,7 +100,7 @@ export default function ProviderSettings() {
       <h2 className="section-title">模型供应商</h2>
       <p className="hint">
         类似 cc-switch：选协议、填 API Key / Base URL，再用 haiku / sonnet / opus 映射到真实模型名。
-        密钥只存在本机 App Server（~/.harness/providers.json），前端只显示 ***。
+        密钥只存在本机应用服务（~/.harness/providers.json），前端只显示 ***。
       </p>
       <div className="provider-list">
         {models.providers.map((item) => {

@@ -15,8 +15,28 @@ import type {
 
 const WORKSPACE_KEY = "harness.workspace";
 const THREAD_KEY = "harness.thread";
+const AGENTS_KEY = "harness.agents";
+const ACTIVE_AGENT_KEY = "harness.activeAgent";
 
 export type ChatItem = ItemEvent & { pending?: boolean };
+
+export type AgentPermission = "readonly" | "confirm" | "auto";
+
+export type AgentProfile = {
+  id: string;
+  name: string;
+  prompt: string;
+  workspace: string;
+  permission: AgentPermission;
+  created_at: string;
+  updated_at: string;
+};
+
+export const AGENT_PERMISSIONS: { value: AgentPermission; label: string; description: string }[] = [
+  { value: "readonly", label: "只读", description: "只分析和回答，不修改文件、不执行变更。" },
+  { value: "confirm", label: "确认后执行", description: "可以修改工作目录，写入、编辑和删除前需要确认。" },
+  { value: "auto", label: "自动执行", description: "在工作目录内自动执行，高风险动作仍会弹出审批。" },
+];
 
 type HarnessState = {
   connected: boolean;
@@ -31,6 +51,8 @@ type HarnessState = {
   skills: SkillInfo[];
   config: ConfigMap;
   models: ModelsState;
+  agents: AgentProfile[];
+  activeAgentId: string;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   setWorkspace: (path: string) => Promise<void>;
@@ -54,14 +76,47 @@ type HarnessState = {
   setModel: (model: string, providerId?: string) => Promise<void>;
   upsertProvider: (provider: Record<string, unknown>) => Promise<void>;
   deleteProvider: (id: string) => Promise<void>;
+  saveAgent: (agent: Omit<AgentProfile, "created_at" | "updated_at">) => AgentProfile;
+  deleteAgent: (id: string) => void;
+  selectAgent: (id: string) => void;
 };
 
 const EMPTY_MODELS: ModelsState = { active_provider: "", active_model: "", providers: [] };
+const EMPTY_AGENTS: AgentProfile[] = [];
 
 function workspaceOf(): string {
   const fromShell = window.harness?.cwd;
   if (fromShell) return fromShell;
   return localStorage.getItem(WORKSPACE_KEY) || "";
+}
+
+function readAgents(): AgentProfile[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(AGENTS_KEY) || "[]") as AgentProfile[];
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => item && typeof item.id === "string" && typeof item.name === "string")
+      : EMPTY_AGENTS;
+  } catch {
+    return EMPTY_AGENTS;
+  }
+}
+
+function writeAgents(agents: AgentProfile[]): void {
+  localStorage.setItem(AGENTS_KEY, JSON.stringify(agents));
+}
+
+function agentPreamble(agent: AgentProfile): string {
+  const permission = AGENT_PERMISSIONS.find((item) => item.value === agent.permission);
+  return [
+    "【智能体设定】",
+    `名称：${agent.name}`,
+    `工作目录：${agent.workspace || "未设置（使用当前 workspace）"}`,
+    `权限：${permission?.label ?? agent.permission}。${permission?.description ?? ""}`,
+    "自定义提示词：",
+    agent.prompt.trim() || "（未填写）",
+    "",
+    "【用户任务】",
+  ].join("\n");
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -71,7 +126,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 function failure(err: unknown, what: string): string {
   const reason = err instanceof RpcError ? err.message : String(err);
   if (reason.includes("Unknown method")) {
-    return `${what}失败：App Server 是旧版本，重启一下 .\\start-server.ps1`;
+    return `${what}失败：应用服务是旧版本，重启一下 .\\start-server.ps1`;
   }
   return `${what}失败：${reason}`;
 }
@@ -151,6 +206,8 @@ export const useHarness = create<HarnessState>((set, get) => ({
   skills: [],
   config: {},
   models: EMPTY_MODELS,
+  agents: readAgents(),
+  activeAgentId: localStorage.getItem(ACTIVE_AGENT_KEY) || "",
 
   connect: async () => {
     if (get().connecting || get().connected) return;
@@ -294,6 +351,8 @@ export const useHarness = create<HarnessState>((set, get) => ({
 
   send: async (text: string) => {
     let thread = get().thread;
+    const isNewThread = !thread;
+    const agent = get().agents.find((item) => item.id === get().activeAgentId);
     if (!thread) {
       try {
         thread = await get().startThread();
@@ -302,6 +361,7 @@ export const useHarness = create<HarnessState>((set, get) => ({
         return;
       }
     }
+    const outgoing = isNewThread && agent ? `${agentPreamble(agent)}${text}` : text;
     turnSeq += 1;
     set((state) => ({
       busy: true,
@@ -312,7 +372,10 @@ export const useHarness = create<HarnessState>((set, get) => ({
       ],
     }));
     try {
-      await getClient().request("turn/start", { thread_id: thread.thread_id, text });
+      await getClient().request("turn/start", { thread_id: thread.thread_id, text: outgoing });
+      if (agent && isNewThread && text.trim()) {
+        await get().renameThread(thread.thread_id, `${agent.name} · ${text.trim().slice(0, 24)}`);
+      }
       await get().refreshThreads();
     } catch (err) {
       set({ busy: false, error: err instanceof RpcError ? err.message : String(err) });
@@ -427,5 +490,36 @@ export const useHarness = create<HarnessState>((set, get) => ({
     } catch (err) {
       set({ error: failure(err, "删除供应商") });
     }
+  },
+
+  saveAgent: (input) => {
+    const now = new Date().toISOString();
+    const agents = get().agents;
+    const existing = agents.find((item) => item.id === input.id);
+    const next: AgentProfile = {
+      ...input,
+      prompt: input.prompt.trim(),
+      workspace: input.workspace.trim(),
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+    };
+    const list = existing ? agents.map((item) => (item.id === next.id ? next : item)) : [...agents, next];
+    writeAgents(list);
+    localStorage.setItem(ACTIVE_AGENT_KEY, next.id);
+    set({ agents: list, activeAgentId: next.id });
+    return next;
+  },
+
+  deleteAgent: (id: string) => {
+    const list = get().agents.filter((item) => item.id !== id);
+    writeAgents(list);
+    const activeAgentId = get().activeAgentId === id ? "" : get().activeAgentId;
+    localStorage.setItem(ACTIVE_AGENT_KEY, activeAgentId);
+    set({ agents: list, activeAgentId });
+  },
+
+  selectAgent: (id: string) => {
+    localStorage.setItem(ACTIVE_AGENT_KEY, id);
+    set({ activeAgentId: id });
   },
 }));
