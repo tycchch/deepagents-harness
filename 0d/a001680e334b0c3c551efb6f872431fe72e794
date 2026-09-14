@@ -1,0 +1,54 @@
+frontend/web/src/styles.css
+  s_01d9c97511821f::t_d673d44fb52322 590-593
+  s_01d9c97511821f::t_9c897b8c9352cd 856-929
+  s_01d9c97511821f::t_1f8afc416ded90 556-557
+  s_01d9c97511821f::t_34d3f4501f8e40 763-765
+  s_01d9c97511821f::t_fcad9e7f6c68ee 934-946
+  s_01d9c97511821f::t_c5b054378fd295 681-682
+  s_01d9c97511821f::t_7e2380b3145f8f 757-759
+  s_01d9c97511821f::t_82b4504b906ce4 808,813
+  s_01d9c97511821f::t_a972e8bd605a13 530-536,543-544
+  s_01d9c97511821f::t_a6ec301da767f9 762,768,770-771,773,779-780
+  s_01d9c97511821f::t_05f7a48fde0f37 522-529,537-542,545-555,558-589,594-680,683-756,760-761,766-767,769,772,774-778,781-807,809-812,814-855,930-933,947-973,987-1009
+  s_01d9c97511821f::t_fb455966a7ec46 974-986
+frontend/web/src/hooks/useAppHistory.ts
+  s_01d9c97511821f::t_60a001d16a5072 1-37
+backend/agent/backends.py
+  s_0277176d6ef0c1::t_7d74f53e833651 20-22,30-31
+backend/agent/factory.py
+  s_0277176d6ef0c1::t_96d4a2ec6e6dda 4,17,22,33,45-51,53,55,63
+backend/agent/permissions.py
+  s_0277176d6ef0c1::t_3a343153d7e727 33-37
+backend/config/default.yaml
+  s_0277176d6ef0c1::t_d0b1af7b918548 7
+backend/config/schema.py
+  s_0277176d6ef0c1::t_37bc4228a8955c 35
+backend/server/rpc.py
+  s_0277176d6ef0c1::t_8ff3dd424938b2 53
+backend/tests/unit/test_agent.py
+  s_0277176d6ef0c1::t_39f4f612f04262 2,24-27,55-57,104-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0da001680e334b0c3c551efb6f872431fe72e794",
+  "prompts": {},
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    },
+    "s_0277176d6ef0c1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "675dea68-7a0e-4d1f-bce1-9486459042a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
