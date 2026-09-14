@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from config.schema import HarnessConfig, SandboxConfig
 from deepagents.backends import CompositeBackend, FilesystemBackend, StateBackend
@@ -21,6 +21,10 @@ def test_permissions_first_match_and_personal_interrupt(tmp_path: Path) -> None:
     memories = next(r for r in rules if "/memories/**" in r.paths)
     assert memories.mode == "allow"
     assert "/memories" in memories.paths
+    offload = next(r for r in rules if "/conversation_history/**" in r.paths)
+    assert offload.mode == "allow"
+    assert "read" in offload.operations
+    assert "/large_tool_results/**" in offload.paths
     assert rules[-1].paths == ["/**"]
     assert rules[-1].mode == "deny"
 
@@ -48,6 +52,9 @@ def test_backend_routes_workspace_to_filesystem(tmp_path: Path) -> None:
     assert isinstance(backend.routes["/skills/shared/"], (FilesystemBackend, FS))
     assert isinstance(backend.routes["/skills/personal/"], (FilesystemBackend, FS))
     assert "/workspace/" in backend.routes
+    assert "/conversation_history/" in backend.routes
+    assert "/large_tool_results/" in backend.routes
+    assert isinstance(backend.routes["/conversation_history/"], (FilesystemBackend, FS))
     assert not isinstance(backend.default, type(backend.routes["/workspace/"])) or isinstance(
         backend.default, StateBackend
     )
@@ -94,3 +101,48 @@ def test_factory_passes_skills_permissions_and_name(tmp_path: Path) -> None:
     assert captured["backend"] is not None
     assert str(workspace) in captured["system_prompt"]
     assert "/workspace/" in captured["system_prompt"]
+
+
+def test_summarization_settings_fire_at_300k() -> None:
+    from agent.context import should_compact, summarization_settings
+
+    settings = summarization_settings(300_000)
+    assert settings["trigger"] == ("tokens", 300_000)
+    assert settings["keep"] == ("tokens", 30_000)
+    assert settings["truncate_args_settings"]["trigger"] == ("tokens", 255_000)
+    assert settings["truncate_args_settings"]["keep"] == ("tokens", 30_000)
+    assert should_compact(300_000, 300_000) is True
+    assert should_compact(299_999, 300_000) is False
+
+
+def test_factory_passes_summarization_middleware(tmp_path: Path) -> None:
+    from agent.factory import create_harness_agent
+
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    cfg = HarnessConfig(
+        workspace_root=str(workspace),
+        skills_root=str(tmp_path / "skills"),
+        deepseek_api_key="sk-test",
+        context_limit_tokens=300_000,
+    )
+    captured: dict = {}
+    fake_mw = object()
+    fake_model = MagicMock()
+
+    def fake_create(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    with (
+        patch("agent.factory.create_deep_agent", side_effect=lambda *a, **k: fake_create(**k)),
+        patch("agent.factory.build_chat_model", return_value=fake_model),
+        patch("agent.factory.build_summarization_middleware", return_value=fake_mw) as build_mw,
+    ):
+        create_harness_agent(cfg)
+
+    assert fake_mw in list(captured["middleware"])
+    build_mw.assert_called_once()
+    assert build_mw.call_args.kwargs["limit"] == 300_000
+    assert build_mw.call_args.args[0] is fake_model
+    assert build_mw.call_args.args[1] is captured["backend"]

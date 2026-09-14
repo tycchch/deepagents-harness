@@ -160,24 +160,26 @@ export default function AgentsPage() {
               />
               <p className="hint">启动智能体时会自动切换到这个目录；对话中请使用 /workspace/ 虚拟路径。</p>
             </div>
-            <div className="field">
+            <div className="field permission-field">
               <span className="field-label">权限</span>
-              <div className="permission-options">
-                {AGENT_PERMISSIONS.map((item) => (
-                  <label key={item.value} className={`permission-option${draft.permission === item.value ? " active" : ""}`}>
-                    <input
-                      type="radio"
-                      name="agent-permission"
-                      value={item.value}
-                      checked={draft.permission === item.value}
-                      onChange={() => update("permission", item.value)}
-                    />
-                    <span>
+              <div className="permission-options" role="radiogroup" aria-label="权限">
+                {AGENT_PERMISSIONS.map((item) => {
+                  const selected = draft.permission === item.value;
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      className={`permission-card${selected ? " active" : ""}`}
+                      onClick={() => update("permission", item.value)}
+                    >
                       <strong>{item.label}</strong>
                       <small>{item.description}</small>
-                    </span>
-                  </label>
-                ))}
+                      <span className={`permission-dot${selected ? " on" : ""}`} aria-hidden />
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="field">

@@ -17,7 +17,9 @@ def build_backend(cfg: HarnessConfig, *, context=None) -> CompositeBackend:
     shared = skills_root / "shared"
     personal = skills_root / "personal"
     memories = Path(cfg.memories_root or Path.home() / ".harness" / "memories").resolve()
-    for path in (shared, personal, memories):
+    history = memories.parent / "conversation_history"
+    large_results = memories.parent / "large_tool_results"
+    for path in (shared, personal, memories, history, large_results):
         path.mkdir(parents=True, exist_ok=True)
     _seed_shared_skills(shared)
 
@@ -25,6 +27,8 @@ def build_backend(cfg: HarnessConfig, *, context=None) -> CompositeBackend:
         "/skills/shared/": FilesystemBackend(root_dir=shared, virtual_mode=True),
         "/skills/personal/": FilesystemBackend(root_dir=personal, virtual_mode=True),
         "/memories/": FilesystemBackend(root_dir=memories, virtual_mode=True),
+        "/conversation_history/": FilesystemBackend(root_dir=history, virtual_mode=True),
+        "/large_tool_results/": FilesystemBackend(root_dir=large_results, virtual_mode=True),
     }
     if cfg.sandbox.enabled:
         routes["/workspace/"] = DockerSandboxBackend(

@@ -50,6 +50,7 @@ def _model_sig(cfg: HarnessConfig) -> str:
             cfg.deepseek_base_url,
             cfg.deepseek_model or cfg.model,
             "1" if cfg.deepseek_api_key else "0",
+            str(cfg.context_limit_tokens),
         ]
     )
 

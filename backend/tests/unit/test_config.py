@@ -12,6 +12,10 @@ def test_load_deepseek_from_env(monkeypatch) -> None:
     assert cfg.deepseek_model == "deepseek-chat"
 
 
+def test_context_limit_defaults_to_300k() -> None:
+    assert HarnessConfig().context_limit_tokens == 300_000
+
+
 def test_default_yaml_local_disk(monkeypatch) -> None:
     monkeypatch.delenv("HARNESS_SANDBOX", raising=False)
     monkeypatch.delenv("HARNESS_CONFIG", raising=False)
@@ -21,6 +25,7 @@ def test_default_yaml_local_disk(monkeypatch) -> None:
     assert cfg.sandbox.workdir == "/workspace"
     assert cfg.persist.checkpointer == "memory"
     assert cfg.persist.store == "memory"
+    assert cfg.context_limit_tokens == 300_000
     assert cfg.server_transport == "ws"
     assert isinstance(cfg.client, ClientConfig)
 
@@ -73,6 +78,7 @@ def test_build_chat_model_uses_openai_compat() -> None:
     assert kwargs["model"] == "deepseek-chat"
     assert kwargs["api_key"] == "sk-test"
     assert kwargs["base_url"].rstrip("/").endswith("/v1")
+    assert kwargs["profile"] == {"max_input_tokens": 300_000}
 
 
 def test_build_chat_model_anthropic() -> None:
@@ -94,6 +100,7 @@ def test_build_chat_model_anthropic() -> None:
     assert kwargs["model"] == "deepseek-chat"
     assert kwargs["api_key"] == "sk-ant"
     assert kwargs["base_url"] == "https://api.deepseek.com/anthropic"
+    assert kwargs["profile"] == {"max_input_tokens": 300_000}
 
 
 def test_build_chat_model_without_key_returns_string() -> None:

@@ -31,6 +31,11 @@ def build_permissions(_cfg: HarnessConfig) -> list[FilesystemPermission]:
             mode="allow",
         ),
         FilesystemPermission(
+            operations=["read"],
+            paths=["/conversation_history/**", "/large_tool_results/**"],
+            mode="allow",
+        ),
+        FilesystemPermission(
             operations=["read", "write"],
             paths=["/**"],
             mode="deny",

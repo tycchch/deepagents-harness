@@ -32,6 +32,7 @@ class HarnessConfig(BaseModel):
     skills_root: str = ""
     memories_root: str = ""
     memory_enabled: bool = True
+    context_limit_tokens: int = 300_000
     sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
     persist: PersistConfig = Field(default_factory=PersistConfig)
     client: ClientConfig = Field(default_factory=ClientConfig)

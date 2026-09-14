@@ -520,3 +520,491 @@ body {
   .settings-panel { padding: 23px 19px; }
   .settings-grid .field, .providers > .field, .map-grid .field, .agents-content .settings-panel .field { padding: 14px; }
 }
+
+/* Density + Cursor-like chrome. Later rules win over stacked theme blocks. */
+:root {
+  --nav-width: 248px;
+  --nav-collapsed-width: 52px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-size: 13px;
+}
+
+.app {
+  --nav-width: 248px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.app.nav-collapsed {
+  --nav-width: var(--nav-collapsed-width);
+}
+
+.nav {
+  z-index: 2;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: var(--nav-width);
+  height: 100%;
+  flex: 0 0 var(--nav-width);
+  gap: 4px;
+  padding: 8px 8px 12px;
+  transition: width .16s ease, flex-basis .16s ease;
+}
+
+.nav-chrome {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 8px;
+}
+
+.nav-tool {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  color: #c5cce4;
+  background: transparent;
+}
+
+.nav-tool:hover:not(:disabled) {
+  color: #fff;
+  background: #30375d;
+}
+
+.nav-tool:disabled {
+  opacity: .35;
+}
+
+.nav::before {
+  pointer-events: none;
+}
+
+.brand {
+  gap: 8px;
+  padding: 0 6px 10px;
+}
+
+.logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.brand-name {
+  font-size: 14px;
+  letter-spacing: -.02em;
+}
+
+.brand-sub,
+.status-server {
+  font-size: 11px;
+}
+
+.new-chat {
+  min-height: 32px;
+  margin: 0 2px 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.group-label {
+  padding: 8px 10px 2px;
+  font-size: 10px;
+}
+
+.nav > a {
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.sessions-nav {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  margin-top: 8px;
+  padding-top: 8px;
+  overflow: auto;
+}
+
+.sessions-nav .head {
+  padding: 0 6px 6px;
+}
+
+.toggle-title {
+  font-size: 11px;
+}
+
+.items {
+  gap: 1px;
+}
+
+.dir-group {
+  margin-bottom: 6px;
+}
+
+.dir-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 22px;
+  padding: 2px 4px;
+}
+
+.dir-fold {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 4px;
+  color: #9aa3c2;
+  background: transparent;
+  opacity: 0;
+}
+
+.dir-head:hover .dir-fold,
+.dir-fold:focus-visible,
+.dir-group.folded .dir-fold {
+  opacity: 1;
+}
+
+.dir-fold:hover {
+  color: #fff;
+  background: #30375d;
+}
+
+.caret {
+  transition: transform .12s ease;
+}
+
+.caret.open {
+  transform: rotate(90deg);
+}
+
+.dir-label {
+  overflow: hidden;
+  color: #8b94b3;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item {
+  padding: 4px 6px 4px 20px;
+  font-size: 12px;
+}
+
+.item .open {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+  gap: 8px;
+  text-align: left;
+}
+
+.item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-when {
+  margin-left: auto;
+  color: #7d86a6;
+  font-size: 10px;
+}
+
+.item .icon {
+  opacity: 0;
+}
+
+.item:hover .icon,
+.item.active .icon {
+  opacity: 1;
+}
+
+.more {
+  padding: 6px 10px;
+  color: #8b94b3;
+  font-size: 11px;
+}
+
+.status {
+  padding: 8px;
+  font-size: 11px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.page > header.chrome-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .86);
+}
+
+.page > header.chrome-header h1 {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chrome-meta {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-left: auto;
+  gap: 6px;
+}
+
+.chrome-meta .badge {
+  overflow: hidden;
+  max-width: 280px;
+  padding: 2px 7px;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page > header:not(.chrome-header) {
+  max-width: 1040px;
+  padding: 16px 28px 8px;
+}
+
+.page > header:not(.chrome-header) h1 {
+  display: none;
+}
+
+.page > header p,
+.page-subtitle,
+.hint {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.page > main,
+.page > section {
+  max-width: 1040px;
+  padding: 12px 28px 36px;
+}
+
+.welcome h1 {
+  font-size: 22px;
+}
+
+.section-title {
+  font-size: 15px;
+}
+
+.field > label,
+.field > span:first-child,
+.field-label {
+  font-size: 12px;
+}
+
+.field input,
+.field textarea,
+.field select {
+  min-height: 34px;
+  font-size: 13px;
+}
+
+.btn {
+  min-height: 32px;
+  font-size: 13px;
+}
+
+.permission-field {
+  display: grid;
+  gap: 8px;
+}
+
+.permission-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.permission-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+  padding: 14px 14px 12px;
+  border: 1px solid #e1e4f0;
+  border-radius: 10px;
+  color: inherit;
+  background: #fff;
+  text-align: left;
+}
+
+.permission-card strong {
+  color: #292d4a;
+  font-size: 13px;
+}
+
+.permission-card small {
+  flex: 1;
+  color: #707994;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.permission-card:hover {
+  border-color: #bcb7ed;
+}
+
+.permission-card.active {
+  border-color: #7c78df;
+  background: #f7f6ff;
+  box-shadow: 0 0 0 3px rgba(89, 103, 217, .12);
+}
+
+.permission-dot {
+  width: 14px;
+  height: 14px;
+  margin: 4px auto 0;
+  border: 1.5px solid #c5c9dc;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.permission-dot.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 3.5px var(--accent);
+}
+
+.agents-content .settings-panel .permission-field {
+  padding-bottom: 16px;
+}
+
+.agents-content .settings-panel .permission-field .permission-card {
+  min-height: 132px;
+}
+
+@media (max-width: 760px) {
+  .permission-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.composer {
+  left: var(--nav-width);
+}
+
+.app.nav-collapsed .nav-chrome {
+  flex-direction: column;
+}
+
+.app.nav-collapsed .nav-chrome .nav-tool:not(.nav-fold) {
+  display: none;
+}
+
+.app.nav-collapsed .nav-fold {
+  width: 32px;
+  height: 32px;
+}
+
+.app.nav-collapsed .brand > span:last-child,
+.app.nav-collapsed .label,
+.app.nav-collapsed .group-label,
+.app.nav-collapsed .nav > a span,
+.app.nav-collapsed .sessions-nav,
+.app.nav-collapsed .status-text,
+.app.nav-collapsed .status-server,
+.app.nav-collapsed .status-retry,
+.app.nav-collapsed .status .hint {
+  display: none;
+}
+
+.app.nav-collapsed .brand {
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+
+.app.nav-collapsed .new-chat {
+  padding: 0;
+}
+
+.app.nav-collapsed .nav > a {
+  justify-content: center;
+  padding: 8px 0;
+}
+
+@media (max-width: 760px) {
+  html,
+  body,
+  #root,
+  .app {
+    height: auto;
+    overflow: visible;
+  }
+
+  .nav,
+  .page {
+    height: auto;
+  }
+
+  .app,
+  .app.nav-collapsed {
+    --nav-width: 100%;
+  }
+
+  .nav-chrome {
+    display: none;
+  }
+
+  .chrome-header {
+    min-height: 36px;
+    padding: 0 14px;
+  }
+
+  .page > header {
+    padding: 14px 18px 6px;
+  }
+
+  .app.nav-collapsed .sessions-nav,
+  .app.nav-collapsed .label,
+  .app.nav-collapsed .brand > span:last-child {
+    display: revert;
+  }
+}

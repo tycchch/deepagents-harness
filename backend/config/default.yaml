@@ -4,6 +4,7 @@ workspace_root: ""
 skills_root: ""
 memories_root: ""
 memory_enabled: true
+context_limit_tokens: 300000
 server_transport: ws
 ws_bind: 127.0.0.1
 ws_port: 8765
