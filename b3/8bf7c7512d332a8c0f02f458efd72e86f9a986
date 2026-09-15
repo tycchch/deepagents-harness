@@ -1,0 +1,36 @@
+frontend/web/src/styles.css
+  s_01d9c97511821f::t_c0ada2198c77b2 1018-1020,1033,1041-1044,1046-1047,1049-1051,1054-1224
+  s_01d9c97511821f::t_8dd0284108753b 1021-1032,1034-1040,1045,1048,1052-1053
+  s_01d9c97511821f::t_e24eb92dc51322 543-544
+  h_85327ed1938640 526,542
+  s_01d9c97511821f::t_d4e122d415510b 934-939
+frontend/web/src/pages/ChatPage.tsx
+  s_01d9c97511821f::t_0404bea057a30c 29
+frontend/web/src/components/MessageList.tsx
+  h_85327ed1938640 112-113,121
+frontend/web/src/components/SessionNav.tsx
+  h_85327ed1938640 3,35,143-144,149-161
+frontend/web/src/components/ThoughtProcess.tsx
+  h_85327ed1938640 44-46,50-60,63,83,85,87-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b38bf7c7512d332a8c0f02f458efd72e86f9a986",
+  "prompts": {},
+  "humans": {
+    "h_85327ed1938640": {
+      "author": "tsy <tsy@htinf.com>"
+    }
+  },
+  "sessions": {
+    "s_01d9c97511821f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d671b118-381e-411b-abf1-00e43cd26325",
+        "model": "grok-4.6"
+      },
+      "human_author": "tsy <tsy@htinf.com>"
+    }
+  }
+}
