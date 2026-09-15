@@ -26,7 +26,7 @@ export default function ChatPage() {
 
   return (
     <>
-      <main>
+      <main className="chat-main">
         <MessageList
           items={items}
           canSuggest={connected && Boolean(workspace)}

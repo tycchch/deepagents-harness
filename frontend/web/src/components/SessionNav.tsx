@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Pencil, Plus } from "lucide-react";
+import { ChevronRight, Folder, Pencil, Plus } from "lucide-react";
 import { groupThreads, relTime, visibleInGroup } from "../lib/threads";
 import type { ThreadInfo } from "../protocol/types";
 import { useHarness } from "../store/session";
@@ -32,6 +32,7 @@ export default function SessionNav() {
   const refreshThreads = useHarness((s) => s.refreshThreads);
   const renameThread = useHarness((s) => s.renameThread);
   const newDraft = useHarness((s) => s.newDraft);
+  const setWorkspace = useHarness((s) => s.setWorkspace);
 
   useEffect(() => {
     if (connected) void refreshThreads();
@@ -139,11 +140,25 @@ export default function SessionNav() {
                   aria-expanded={!folded}
                   onClick={() => toggleDir(group.key)}
                 >
-                  <ChevronRight size={13} className={`caret${folded ? "" : " open"}`} aria-hidden />
+                  <Folder size={13} className="dir-folder" aria-hidden />
+                  <ChevronRight size={13} className={`dir-caret caret${folded ? "" : " open"}`} aria-hidden />
                 </button>
                 <span className="dir-label" title={group.key}>
                   {group.label}
                 </span>
+                <button
+                  type="button"
+                  className="dir-add"
+                  title="在此目录新建会话（发第一条消息时才创建）"
+                  disabled={!connected}
+                  onClick={() => {
+                    newDraft();
+                    if (group.key && group.key !== "/") void setWorkspace(group.key);
+                    navigate("/chat");
+                  }}
+                >
+                  <Plus size={13} aria-hidden />
+                </button>
               </div>
               {shown.map(renderItem)}
             </div>

@@ -109,8 +109,8 @@ export default function MessageList({ items, canSuggest = false, onSuggest }: Pr
       {groupTurns(items).map((block, index) => {
         if (block.kind === "user") {
           return (
-            <div key={block.item.item_id} className="msg user">
-              {block.item.text}
+            <div key={block.item.item_id} className="msg-row">
+              <div className="msg user">{block.item.text}</div>
             </div>
           );
         }
@@ -118,7 +118,7 @@ export default function MessageList({ items, canSuggest = false, onSuggest }: Pr
           <div key={`turn-${index}`} className="turn">
             {block.process.length ? <ThoughtProcess items={block.process} /> : null}
             {block.answers.map((item) => (
-              <div key={item.item_id} className={`msg agent${item.pending ? " pending" : ""}`}>
+              <div key={item.item_id} className={`reply${item.pending ? " pending" : ""}`}>
                 {item.text ? <Markdown text={item.text} /> : item.pending ? <span className="dots">…</span> : null}
               </div>
             ))}

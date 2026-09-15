@@ -523,7 +523,7 @@ body {
 
 /* Density + Cursor-like chrome. Later rules win over stacked theme blocks. */
 :root {
-  --nav-width: 248px;
+  --nav-width: 268px;
   --nav-collapsed-width: 52px;
 }
 
@@ -539,7 +539,9 @@ body {
 }
 
 .app {
-  --nav-width: 248px;
+  --nav-width: 268px;
+  --chat-col: 760px;
+  --chat-gutter: 24px;
   height: 100%;
   overflow: hidden;
 }
@@ -929,6 +931,12 @@ body {
 
 .composer {
   left: var(--nav-width);
+  padding: 16px var(--chat-gutter) 24px;
+}
+
+.composer-inner {
+  width: min(var(--chat-col), 100%);
+  max-width: var(--chat-col);
 }
 
 .app.nav-collapsed .nav-chrome {
@@ -1007,4 +1015,211 @@ body {
   .app.nav-collapsed .brand > span:last-child {
     display: revert;
   }
+}
+
+/* DeepSeek chat + directory row hover. */
+.chat-main {
+  max-width: none !important;
+  width: 100%;
+  padding: 0 var(--chat-gutter) 36px !important;
+}
+
+.messages,
+.welcome {
+  width: min(var(--chat-col), 100%);
+  max-width: var(--chat-col);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 28px 0 160px;
+}
+
+.msg-row {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin: 18px 0;
+}
+
+.msg.user {
+  max-width: 78%;
+  margin: 0;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 16px;
+  color: #1f1f1f;
+  background: #f3f4f6;
+  box-shadow: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.reply {
+  max-width: none;
+  margin: 8px 0 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #1f1f1f;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.reply.pending {
+  opacity: .7;
+}
+
+.turn {
+  margin: 8px 0 0;
+}
+
+.thought,
+.thinking {
+  margin: 4px 0 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.thought-head {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  gap: 6px;
+  padding: 0;
+  color: #8b8b8b;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.thought-head:hover {
+  color: #5f5f5f;
+}
+
+.thought-logo {
+  width: 16px;
+  height: 16px;
+  color: #4d6bfe;
+  flex: 0 0 16px;
+}
+
+.thought.pending .thought-logo {
+  animation: pulse 1s infinite alternate;
+}
+
+.thought-caret {
+  margin-left: 0;
+  color: #b0b0b0;
+  font-size: 16px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.thought.open .thought-caret {
+  transform: rotate(90deg) translateX(-1px);
+}
+
+.thought-body {
+  margin: 8px 0 0 8px;
+  padding: 0 0 0 14px;
+  border-left: 2px solid #ececec;
+}
+
+.step-think {
+  color: #6b6b6b;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.step-tool,
+.thinking {
+  margin: 6px 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.prose p {
+  margin: 0 0 12px;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.dir-head {
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.dir-fold {
+  width: 20px;
+  height: 20px;
+  opacity: 1;
+  color: #9aa3c2;
+}
+
+.dir-folder {
+  display: block;
+}
+
+.dir-caret {
+  display: none;
+}
+
+.dir-add {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 5px;
+  color: #c5cce4;
+  background: transparent;
+  opacity: 0;
+}
+
+.dir-head:hover {
+  color: #fff;
+  background: #30375d;
+}
+
+.dir-head:hover .dir-label,
+.dir-head:hover .dir-fold,
+.dir-head:hover .dir-add {
+  color: #fff;
+}
+
+.dir-head:hover .dir-folder {
+  display: none;
+}
+
+.dir-head:hover .dir-caret {
+  display: block;
+}
+
+.dir-head:hover .dir-add {
+  opacity: 1;
+}
+
+.dir-add:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .1);
+}
+
+.item {
+  padding: 5px 8px 5px 22px;
+  border-radius: 8px;
+}
+
+.item:hover {
+  color: #fff;
+  background: #30375d;
+}
+
+.item:hover .item-when,
+.item:hover .open {
+  color: #fff;
 }
