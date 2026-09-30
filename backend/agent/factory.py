@@ -2,6 +2,7 @@ from deepagents import create_deep_agent
 
 from agent.backends import build_backend
 from agent.context import build_summarization_middleware, model_profile
+from agent.file_history import build_blob_store, build_file_history_middleware
 from agent.permissions import build_interrupt_on, build_permissions
 from agent.prompts import build_system_prompt
 from agent.tools import build_tools
@@ -43,8 +44,9 @@ def create_harness_agent(
     store = store or build_store(cfg)
     checkpointer = checkpointer or build_checkpointer(cfg)
     model = build_chat_model(cfg)
-    backend = build_backend(cfg, context=context)
-    middleware = []
+    backend = build_backend(cfg, context=context, blobs=build_blob_store(cfg))
+    # 声明 file_history channel；实际的备份发生在 FileHistoryBackend 里。
+    middleware = [build_file_history_middleware()]
     if not isinstance(model, str):
         middleware.append(
             build_summarization_middleware(model, backend, limit=cfg.context_limit_tokens)

@@ -4,12 +4,19 @@ import shutil
 from pathlib import Path
 
 from deepagents.backends import CompositeBackend, FilesystemBackend, StateBackend
+from deepagents.backends.protocol import BackendProtocol
 
+from agent.file_history import BlobStore, FileHistoryBackend
 from agent.sandbox import DockerSandboxBackend
 from config.schema import HarnessConfig
 
 
-def build_backend(cfg: HarnessConfig, *, context=None) -> CompositeBackend:
+def build_backend(
+    cfg: HarnessConfig,
+    *,
+    context=None,
+    blobs: BlobStore | None = None,
+) -> CompositeBackend:
     del context
     workspace = Path(cfg.workspace_root or Path.cwd()).resolve()
     workspace.mkdir(parents=True, exist_ok=True)
@@ -31,12 +38,20 @@ def build_backend(cfg: HarnessConfig, *, context=None) -> CompositeBackend:
         "/large_tool_results/": FilesystemBackend(root_dir=large_results, virtual_mode=True),
     }
     if cfg.sandbox.enabled:
+        # 沙箱模式下 /workspace/ 在容器里，这一版不做备份。
         routes["/workspace/"] = DockerSandboxBackend(
             workdir=cfg.sandbox.workdir,
             image=cfg.sandbox.image,
         )
     else:
-        routes["/workspace/"] = FilesystemBackend(root_dir=workspace, virtual_mode=True)
+        workspace_backend: BackendProtocol = FilesystemBackend(
+            root_dir=workspace, virtual_mode=True
+        )
+        if blobs is not None:
+            # 必须在 CompositeBackend 构造前替换：sorted_routes 是构造时快照的，
+            # 之后再改 routes 不会影响路由。
+            workspace_backend = FileHistoryBackend(workspace_backend, blobs)
+        routes["/workspace/"] = workspace_backend
 
     return CompositeBackend(default=StateBackend(), routes=routes)
 
