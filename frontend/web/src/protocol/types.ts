@@ -64,6 +64,9 @@ export type ThreadInfo = {
   updated_at: string;
   archived?: boolean;
   source?: string;
+  parent_thread_id?: string | null;
+  forked_from_turn_id?: string | null;
+  root_thread_id?: string | null;
 };
 
 export type ThreadResumeParams = {
@@ -88,6 +91,7 @@ export type SkillInfo = {
 export type ItemEvent = {
   item_id: string;
   type: ItemType;
+  turn_id?: string | null;
   text?: string | null;
   tool?: string | null;
   path?: string | null;

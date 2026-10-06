@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { PenLine, Search, Sparkles } from "lucide-react";
+import { GitFork, PenLine, Search, Sparkles } from "lucide-react";
 import type { ChatItem } from "../store/session";
 import Markdown from "./Markdown";
 import ThoughtProcess from "./ThoughtProcess";
@@ -8,6 +8,8 @@ type Props = {
   items: ChatItem[];
   canSuggest?: boolean;
   onSuggest?: (text: string) => void;
+  onFork?: (turnId: string) => void;
+  forkDisabled?: boolean;
 };
 
 const SUGGESTIONS = [
@@ -61,7 +63,13 @@ function groupTurns(items: ChatItem[]): Block[] {
   return blocks;
 }
 
-export default function MessageList({ items, canSuggest = false, onSuggest }: Props) {
+export default function MessageList({
+  items,
+  canSuggest = false,
+  onSuggest,
+  onFork,
+  forkDisabled = false,
+}: Props) {
   const anchor = useRef<HTMLDivElement>(null);
   const seen = useRef(0);
 
@@ -114,6 +122,7 @@ export default function MessageList({ items, canSuggest = false, onSuggest }: Pr
             </div>
           );
         }
+        const turnId = [...block.answers, ...block.process].find((item) => item.turn_id)?.turn_id;
         return (
           <div key={`turn-${index}`} className="turn">
             {block.process.length ? <ThoughtProcess items={block.process} /> : null}
@@ -122,6 +131,20 @@ export default function MessageList({ items, canSuggest = false, onSuggest }: Pr
                 {item.text ? <Markdown text={item.text} /> : item.pending ? <span className="dots">…</span> : null}
               </div>
             ))}
+            {turnId ? (
+              <div className="turn-actions">
+                <button
+                  type="button"
+                  className="turn-fork"
+                  disabled={forkDisabled}
+                  title="从此轮创建分支对话"
+                  onClick={() => onFork?.(turnId)}
+                >
+                  <GitFork size={13} aria-hidden />
+                  Fork
+                </button>
+              </div>
+            ) : null}
           </div>
         );
       })}

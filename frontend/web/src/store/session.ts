@@ -59,6 +59,7 @@ type HarnessState = {
   refreshThreads: () => Promise<void>;
   startThread: (workspace?: string) => Promise<ThreadInfo>;
   resumeThread: (threadId: string) => Promise<ThreadInfo>;
+  forkThread: (threadId: string, turnId: string) => Promise<ThreadInfo>;
   renameThread: (threadId: string, title: string) => Promise<void>;
   deleteThread: (threadId: string) => Promise<void>;
   newDraft: () => void;
@@ -157,6 +158,7 @@ function applyNote(note: RpcNotification, set: SetState): void {
   const incoming: ChatItem = {
     item_id: `t${turnSeq}:${String(params.item_id ?? "item")}`,
     type: (params.type as ItemType) || "agent_message",
+    turn_id: (params.turn_id as string | null | undefined) ?? null,
     text: (params.text as string | null | undefined) ?? "",
     tool: (params.tool as string | null | undefined) ?? null,
     path: (params.path as string | null | undefined) ?? null,
@@ -297,6 +299,25 @@ export const useHarness = create<HarnessState>((set, get) => ({
     set({ thread: info, items: [], busy: false, workspace: info.workspace || get().workspace });
     const history = await fetchHistory(threadId);
     if (get().thread?.thread_id === threadId) set({ items: history });
+    return info;
+  },
+
+  forkThread: async (threadId: string, turnId: string) => {
+    const info = (await getClient().request("thread/fork", {
+      thread_id: threadId,
+      turn_id: turnId,
+    })) as ThreadInfo;
+    localStorage.setItem(THREAD_KEY, info.thread_id);
+    set({
+      thread: info,
+      items: [],
+      busy: false,
+      workspace: info.workspace || get().workspace,
+      error: "",
+    });
+    const history = await fetchHistory(info.thread_id);
+    if (get().thread?.thread_id === info.thread_id) set({ items: history });
+    await get().refreshThreads();
     return info;
   },
 

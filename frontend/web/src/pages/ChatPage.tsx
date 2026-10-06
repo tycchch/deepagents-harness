@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ApprovalDialog from "../components/ApprovalDialog";
 import Composer from "../components/Composer";
 import MessageList from "../components/MessageList";
@@ -7,6 +7,7 @@ import { useHarness } from "../store/session";
 
 export default function ChatPage() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const wanted = params.get("thread");
   const thread = useHarness((s) => s.thread);
   const items = useHarness((s) => s.items);
@@ -15,6 +16,7 @@ export default function ChatPage() {
   const connected = useHarness((s) => s.connected);
   const approval = useHarness((s) => s.approval);
   const resumeThread = useHarness((s) => s.resumeThread);
+  const forkThread = useHarness((s) => s.forkThread);
   const send = useHarness((s) => s.send);
   const interrupt = useHarness((s) => s.interrupt);
   const resolveApproval = useHarness((s) => s.resolveApproval);
@@ -31,6 +33,13 @@ export default function ChatPage() {
           items={items}
           canSuggest={connected && Boolean(workspace)}
           onSuggest={(text) => void send(text)}
+          forkDisabled={busy || !thread}
+          onFork={(turnId) => {
+            if (!thread) return;
+            void forkThread(thread.thread_id, turnId).then((forked) => {
+              navigate(`/chat?thread=${encodeURIComponent(forked.thread_id)}`);
+            });
+          }}
         />
       </main>
       <Composer

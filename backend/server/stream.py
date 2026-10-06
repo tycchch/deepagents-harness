@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import AsyncIterator, Iterable
 
 from protocol.events import ApprovalRequestParams, ItemEvent, ItemType
 from protocol.frame import RpcNotification
 from protocol.methods import ApprovalResolveParams
+
+logger = logging.getLogger(__name__)
 
 
 class ApprovalHub:
@@ -113,21 +116,35 @@ def _tool_detail(args: object) -> tuple[str | None, str | None]:
     return (str(path) if path else None), (str(text) if text else None)
 
 
-def messages_to_items(messages: Iterable[object]) -> list[ItemEvent]:
+def messages_to_items(
+    messages: Iterable[object], turn_ids: list[str] | None = None
+) -> list[ItemEvent]:
     items: list[ItemEvent] = []
+    turn_index = -1
+    turn_id: str | None = None
     for index, message in enumerate(messages):
         type_name = type(message).__name__
         name = getattr(message, "name", "") or ""
         text = _content_text(getattr(message, "content", ""))
         if "Human" in type_name:
+            turn_index += 1
+            turn_id = turn_ids[turn_index] if turn_ids and turn_index < len(turn_ids) else None
             if text:
-                items.append(ItemEvent(item_id=f"h{index}", type=ItemType.USER_MESSAGE, text=text))
+                items.append(
+                    ItemEvent(
+                        item_id=f"h{index}",
+                        type=ItemType.USER_MESSAGE,
+                        turn_id=turn_id,
+                        text=text,
+                    )
+                )
             continue
         if "Tool" in type_name:
             items.append(
                 ItemEvent(
                     item_id=f"h{index}",
                     type=_tool_item_type(name),
+                    turn_id=turn_id,
                     text=text or None,
                     tool=name or None,
                 )
@@ -137,7 +154,14 @@ def messages_to_items(messages: Iterable[object]) -> list[ItemEvent]:
             continue
         reasoning = _reasoning_text(message)
         if reasoning:
-            items.append(ItemEvent(item_id=f"h{index}-think", type=ItemType.REASONING, text=reasoning))
+            items.append(
+                ItemEvent(
+                    item_id=f"h{index}-think",
+                    type=ItemType.REASONING,
+                    turn_id=turn_id,
+                    text=reasoning,
+                )
+            )
         for pos, call in enumerate(_tool_calls(message)):
             tool_name = str(call.get("name") or "")
             path, detail = _tool_detail(call.get("args"))
@@ -145,17 +169,27 @@ def messages_to_items(messages: Iterable[object]) -> list[ItemEvent]:
                 ItemEvent(
                     item_id=f"h{index}-call{pos}",
                     type=_tool_item_type(tool_name),
+                    turn_id=turn_id,
                     text=detail,
                     tool=tool_name or None,
                     path=path,
                 )
             )
         if text:
-            items.append(ItemEvent(item_id=f"h{index}-msg", type=ItemType.AGENT_MESSAGE, text=text))
+            items.append(
+                ItemEvent(
+                    item_id=f"h{index}-msg",
+                    type=ItemType.AGENT_MESSAGE,
+                    turn_id=turn_id,
+                    text=text,
+                )
+            )
     return items
 
 
-async def thread_history(agent, thread_id: str) -> list[ItemEvent]:
+async def thread_history(
+    agent, thread_id: str, turn_ids: list[str] | None = None
+) -> list[ItemEvent]:
     if agent is None:
         return []
     config = {"configurable": {"thread_id": thread_id}}
@@ -165,7 +199,7 @@ async def thread_history(agent, thread_id: str) -> list[ItemEvent]:
         return []
     values = getattr(state, "values", None) or {}
     messages = values.get("messages") or []
-    return messages_to_items(messages)
+    return messages_to_items(messages, turn_ids)
 
 
 async def delete_thread_state(agent, thread_id: str) -> None:
@@ -221,10 +255,14 @@ class AgentTurnStreamer:
     def __init__(self, agent) -> None:
         self._agent = agent
 
-    async def run(self, text: str, thread_id: str = "") -> AsyncIterator[RpcNotification]:
+    async def run(
+        self, text: str, thread_id: str = "", turn_id: str = ""
+    ) -> AsyncIterator[RpcNotification]:
         started = False
         config = {"configurable": {"thread_id": thread_id or "default"}}
-        yield RpcNotification(method="turn/started", params={"thread_id": thread_id})
+        yield RpcNotification(
+            method="turn/started", params={"thread_id": thread_id, "turn_id": turn_id}
+        )
         stream = self._agent.astream(
             {"messages": [{"role": "user", "content": text}]},
             config=config,
@@ -240,17 +278,33 @@ class AgentTurnStreamer:
                     yield RpcNotification(method="item/started", params={**note.params, "text": None})
                     started = True
                 yield note
-        yield RpcNotification(method="turn/completed", params={})
+        checkpoint_id = await final_checkpoint_id(self._agent, thread_id)
+        yield RpcNotification(
+            method="turn/completed",
+            params={"turn_id": turn_id, "checkpoint_id": checkpoint_id},
+        )
 
 
-def _agent_notes(text: str) -> list[RpcNotification]:
+async def final_checkpoint_id(agent, thread_id: str) -> str | None:
+    """Return the stable final checkpoint after a completed graph run."""
+    try:
+        state = await agent.aget_state({"configurable": {"thread_id": thread_id}})
+        configurable = (getattr(state, "config", None) or {}).get("configurable") or {}
+        checkpoint_id = configurable.get("checkpoint_id")
+        return str(checkpoint_id) if checkpoint_id else None
+    except Exception:
+        logger.warning("unable to read final checkpoint for turn", exc_info=True)
+        return None
+
+
+def _agent_notes(text: str, turn_id: str = "") -> list[RpcNotification]:
     item = ItemEvent(item_id="item-1", type=ItemType.AGENT_MESSAGE, text=f"echo: {text}")
     payload = item.model_dump(mode="json")
     return [
         RpcNotification(method="item/started", params={**payload, "text": None}),
         RpcNotification(method="item/delta", params=payload),
         RpcNotification(method="item/completed", params=payload),
-        RpcNotification(method="turn/completed", params={}),
+        RpcNotification(method="turn/completed", params={"turn_id": turn_id}),
     ]
 
 
@@ -258,12 +312,16 @@ class FakeTurnStreamer:
     def __init__(self, delay_s: float = 0) -> None:
         self.delay_s = delay_s
 
-    def sync_events(self, text: str) -> list[RpcNotification]:
-        return _agent_notes(text)
+    def sync_events(self, text: str, turn_id: str = "") -> list[RpcNotification]:
+        return _agent_notes(text, turn_id)
 
-    async def run(self, text: str, thread_id: str = "") -> AsyncIterator[RpcNotification]:
-        del thread_id
-        notes = _agent_notes(text)
+    async def run(
+        self, text: str, thread_id: str = "", turn_id: str = ""
+    ) -> AsyncIterator[RpcNotification]:
+        yield RpcNotification(
+            method="turn/started", params={"thread_id": thread_id, "turn_id": turn_id}
+        )
+        notes = _agent_notes(text, turn_id)
         yield notes[0]
         if self.delay_s:
             await asyncio.sleep(self.delay_s)
@@ -287,7 +345,7 @@ class TurnRunner:
         task.cancel()
         return True
 
-    async def stream(self, thread_id: str, text: str) -> AsyncIterator[RpcNotification]:
+    async def stream(self, thread_id: str, text: str, turn_id: str = "") -> AsyncIterator[RpcNotification]:
         if self.is_busy(thread_id):
             raise RuntimeError("Turn already running")
 
@@ -295,15 +353,23 @@ class TurnRunner:
 
         async def _run() -> None:
             try:
-                async for note in self._streamer.run(text, thread_id=thread_id):
+                async for note in self._streamer.run(text, thread_id=thread_id, turn_id=turn_id):
                     await queue.put(note)
             except asyncio.CancelledError:
-                await queue.put(RpcNotification(method="turn/completed", params={"status": "interrupted"}))
+                await queue.put(
+                    RpcNotification(
+                        method="turn/completed", params={"turn_id": turn_id, "status": "interrupted"}
+                    )
+                )
             except Exception as exc:
                 await queue.put(
                     RpcNotification(method="error", params={"code": -32000, "message": str(exc)})
                 )
-                await queue.put(RpcNotification(method="turn/completed", params={"status": "error"}))
+                await queue.put(
+                    RpcNotification(
+                        method="turn/completed", params={"turn_id": turn_id, "status": "error"}
+                    )
+                )
             finally:
                 await queue.put(None)
 

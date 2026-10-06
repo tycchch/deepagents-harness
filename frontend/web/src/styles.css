@@ -1223,3 +1223,26 @@ body {
 .item:hover .open {
   color: #fff;
 }
+
+.turn-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 7px;
+}
+
+.turn-fork {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+}
+
+.turn-fork:hover:not(:disabled) {
+  color: var(--accent-dark);
+  background: rgba(227, 105, 79, .09);
+}

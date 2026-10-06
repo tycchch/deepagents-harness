@@ -40,10 +40,18 @@ class ThreadInfo(BaseModel):
     updated_at: str = ""
     archived: bool = False
     source: str = "desktop"
+    parent_thread_id: str | None = None
+    forked_from_turn_id: str | None = None
+    root_thread_id: str | None = None
 
 
 class ThreadResumeParams(BaseModel):
     thread_id: str
+
+
+class ThreadForkParams(BaseModel):
+    thread_id: str
+    turn_id: str
 
 
 class ThreadRenameParams(BaseModel):

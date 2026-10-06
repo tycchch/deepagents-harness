@@ -9,7 +9,12 @@ from server.stream import FakeTurnStreamer, TurnRunner
 @pytest.mark.asyncio
 async def test_fake_stream_emits_item_then_turn_completed() -> None:
     notes = [note async for note in FakeTurnStreamer().run("hi")]
-    assert [n.method for n in notes[:3]] == ["item/started", "item/delta", "item/completed"]
+    assert [n.method for n in notes[:4]] == [
+        "turn/started",
+        "item/started",
+        "item/delta",
+        "item/completed",
+    ]
     assert notes[-1].method == "turn/completed"
     assert any(isinstance(n, RpcNotification) and n.params.get("text") == "echo: hi" for n in notes)
 

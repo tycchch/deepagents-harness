@@ -22,6 +22,9 @@ class ThreadRecord(BaseModel):
     archived: bool = False
     title_locked: bool = False
     source: str = "desktop"
+    parent_thread_id: str | None = None
+    forked_from_turn_id: str | None = None
+    root_thread_id: str | None = None
 
     def to_info(self) -> ThreadInfo:
         return ThreadInfo(
@@ -31,6 +34,9 @@ class ThreadRecord(BaseModel):
             updated_at=self.updated_at,
             archived=self.archived,
             source=self.source or "desktop",
+            parent_thread_id=self.parent_thread_id,
+            forked_from_turn_id=self.forked_from_turn_id,
+            root_thread_id=self.root_thread_id or self.thread_id,
         )
 
 
@@ -42,6 +48,10 @@ class ThreadStore:
         self._items: dict[str, ThreadRecord] = {}
         self._load()
 
+    @property
+    def path(self) -> Path | None:
+        return self._path
+
     def start(self, workspace: str, *, source: str = "desktop") -> ThreadInfo:
         record = ThreadRecord(
             thread_id=str(uuid4()),
@@ -49,7 +59,34 @@ class ThreadStore:
             updated_at=_now(),
             source=source or "desktop",
         )
+        record.root_thread_id = record.thread_id
         self._items[record.thread_id] = record
+        self._save()
+        return record.to_info()
+
+    def fork(
+        self,
+        thread_id: str,
+        turn_id: str,
+        workspace: str,
+        *,
+        child_id: str | None = None,
+    ) -> ThreadInfo | None:
+        parent = self._items.get(thread_id)
+        if parent is None:
+            return None
+        child_id = child_id or str(uuid4())
+        record = ThreadRecord(
+            thread_id=child_id,
+            workspace=normalize_workspace(workspace),
+            title=f"{parent.title} (fork)" if parent.title else "Fork",
+            updated_at=_now(),
+            source=parent.source or "desktop",
+            parent_thread_id=thread_id,
+            forked_from_turn_id=turn_id,
+            root_thread_id=parent.root_thread_id or parent.thread_id,
+        )
+        self._items[child_id] = record
         self._save()
         return record.to_info()
 
@@ -136,6 +173,7 @@ class ThreadStore:
             return
         raw = json.loads(self._path.read_text(encoding="utf-8"))
         for item in raw:
+            # model_validate的作用是从任意 Python 对象（字典、模型实例、ORM 对象等）验证数据，并创建/返回一个模型实例。
             record = ThreadRecord.model_validate(item)
             self._items[record.thread_id] = record
 

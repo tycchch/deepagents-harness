@@ -18,6 +18,7 @@ class ItemType(StrEnum):
 class ItemEvent(BaseModel):
     item_id: str
     type: ItemType
+    turn_id: str | None = None
     text: str | None = None
     tool: str | None = None
     path: str | None = None
