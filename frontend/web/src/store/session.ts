@@ -140,10 +140,21 @@ let notesBound = false;
 // Server reuses item ids ("msg"/"think") per turn; scope them so turns don't merge.
 let turnSeq = 0;
 
+function finishPending(set: SetState, turnId?: string): void {
+  set((state) => ({
+    busy: false,
+    items: state.items.map((item) =>
+      item.pending && (!turnId || item.turn_id === turnId) ? { ...item, pending: false } : item,
+    ),
+  }));
+}
+
 function applyNote(note: RpcNotification, set: SetState): void {
   const params = asRecord(note.params);
   if (note.method === "error") {
-    set({ error: String(params.message ?? "server error"), busy: false });
+    const turnId = typeof params.turn_id === "string" ? params.turn_id : undefined;
+    finishPending(set, turnId);
+    set({ error: String(params.message ?? "server error") });
     return;
   }
   if (note.method === "approval/request") {
@@ -151,7 +162,8 @@ function applyNote(note: RpcNotification, set: SetState): void {
     return;
   }
   if (note.method === "turn/completed") {
-    set({ busy: false });
+    const turnId = typeof params.turn_id === "string" ? params.turn_id : undefined;
+    finishPending(set, turnId);
     return;
   }
   if (!note.method.startsWith("item/")) return;
@@ -250,7 +262,8 @@ export const useHarness = create<HarnessState>((set, get) => ({
 
   disconnect: async () => {
     await getClient().close();
-    set({ connected: false, busy: false });
+    finishPending(set);
+    set({ connected: false });
   },
 
   setWorkspace: async (path: string) => {
@@ -399,7 +412,8 @@ export const useHarness = create<HarnessState>((set, get) => ({
       }
       await get().refreshThreads();
     } catch (err) {
-      set({ busy: false, error: err instanceof RpcError ? err.message : String(err) });
+      finishPending(set);
+      set({ error: err instanceof RpcError ? err.message : String(err) });
     }
   },
 

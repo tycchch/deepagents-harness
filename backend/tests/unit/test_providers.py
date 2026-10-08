@@ -1,3 +1,7 @@
+import json
+
+import pytest
+
 from config.providers import ProviderStore, parse_model_spec
 from config.schema import HarnessConfig
 
@@ -61,3 +65,19 @@ def test_delete_provider_switches_active(tmp_path) -> None:
     assert store.delete("a") is True
     assert store.active_provider == "b"
     assert store.delete("missing") is False
+
+
+def test_rejects_unlisted_model_and_repairs_stale_selection(tmp_path) -> None:
+    path = tmp_path / "providers.json"
+    store = ProviderStore(path)
+    store.upsert({"name": "DeepSeek", "models": "deepseek-flash,deepseek-v4-pro"})
+    with pytest.raises(KeyError, match="Unknown model"):
+        store.select("test-model")
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["active_model"] = "test-model"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    repaired = ProviderStore(path)
+
+    assert repaired.active_model == "deepseek-flash"
+    assert json.loads(path.read_text(encoding="utf-8"))["active_model"] == "deepseek-flash"

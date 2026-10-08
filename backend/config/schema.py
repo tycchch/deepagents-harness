@@ -23,11 +23,11 @@ class PersistConfig(BaseModel):
 
 
 class HarnessConfig(BaseModel):
-    model: str = "deepseek-chat"
+    model: str = "deepseek-flash"
     provider_protocol: str = "openai"
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com"
-    deepseek_model: str = "deepseek-chat"
+    deepseek_model: str = "deepseek-flash"
     workspace_root: str = ""
     skills_root: str = ""
     memories_root: str = ""

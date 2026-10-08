@@ -269,8 +269,10 @@ def test_models_list_set_and_upsert(tmp_path) -> None:
     assert listed.result["active_model"] == "deepseek-reasoner"
 
 
-def test_config_get_set() -> None:
-    disp = RpcDispatcher()
+def test_config_get_set(tmp_path) -> None:
+    from config.providers import ProviderStore
+
+    disp = RpcDispatcher(providers=ProviderStore(tmp_path / "providers.json"))
     _init(disp)
     got = parse_message(disp.handle(_req("config/get", {}, id=2))[0])
     assert got.result["config"]["server_transport"] == "ws"

@@ -138,7 +138,10 @@ class ProviderStore:
             profile = self.get(provider_id)
             if profile is None:
                 raise KeyError("Unknown provider")
-            resolved = profile.resolve(token)
+            resolved = profile.try_resolve(token)
+            if resolved is None and profile.models:
+                raise KeyError("Unknown model")
+            resolved = resolved or profile.resolve(token)
             self.active_provider = profile.id
             self.active_model = resolved
             self.save()
@@ -152,6 +155,8 @@ class ProviderStore:
                 return profile.id, resolved
         current = self.active()
         if current is None:
+            raise KeyError("Unknown model")
+        if current.models:
             raise KeyError("Unknown model")
         resolved = current.resolve(token)
         self.active_model = resolved
@@ -180,6 +185,11 @@ class ProviderStore:
         self.active_provider = str(raw.get("active_provider") or "")
         self.active_model = str(raw.get("active_model") or "")
         self.providers = [ProviderProfile.model_validate(item) for item in raw.get("providers") or []]
+        active = self.active()
+        if active is not None and active.models and active.try_resolve(self.active_model) is None:
+            self.active_provider = active.id
+            self.active_model = active.models[0].id
+            self.save()
 
     def save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
